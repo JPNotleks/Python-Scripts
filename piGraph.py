@@ -67,13 +67,13 @@ def createLabels():
 		for i in range(int(((xMax-xMin)/xInterval))+1):
                         xP=int(100+xInterval/xConstant*i);r=round(xMin+xInterval*i,dmxPoint)
 			if int(r)==0:r=None
-                        text=Text(Point(xP+11+len(str(r)),u+9),r);text.draw(panel)
+                        text=Text(Point(xP+11+len(str(r)),u+9*pos(origin.y-50)),r);text.draw(panel)
 			marker=Line(Point(xP,720),Point(xP,80));marker.draw(panel)
 
 		for i in range(int(((yMax-yMin)/yInterval))+1):
                         yP=int(720-yInterval/yConstant*i);r=round(yMin+yInterval*i,dmyPoint)
 			if int(r)==0:r=None
-                        text=Text(Point(v+2+3*len(str(r)),yP+9),r);text.draw(panel)
+                        text=Text(Point(v+pos(origin.x-100)*(2+3*len(str(r))),yP-9),r);text.draw(panel)
                         marker=Line(Point(100,yP),Point(900,yP));marker.draw(panel)
 
 
