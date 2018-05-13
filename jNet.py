@@ -7,19 +7,23 @@ from PIL import Image
 
 ######################SETUP#############################
 def s(x):
-	return 1/(1+math.e**(-x))
+	y=1/(1+math.e**(-x))
+	if y==0.5: return 0
+	else: return y
+sigmoid=np.vectorize(s)
 panel=GraphWin("jNet",1100,750,autoflush=False)
-net=np.array([16,8,5,10])
-l=len(net)
-dictPos={}	#position dictionary
-dictW={}	#weight dictionary
-cost=0		#cost function
+
+net=np.array([6,4,4,4]);maxNeurons=max(net);l=len(net)
+dictPos=np.empty([l,maxNeurons],dtype=object)					#position array ([layers,neurons,contents (a,w,b)])
+netA=np.zeros([l,maxNeurons]);netW=np.zeros([l,maxNeurons,maxNeurons]);netB=np.zeros([l,maxNeurons])
+cost=0										#cost function
+inputData=1
 
 def dataSetup():
 	rawData = np.genfromtxt('./optdigits.tra', delimiter=',')	#data import and slicing
-	trainSet=rawData[:100,0:64]		#64 data points
-	labels=rawData[:100,64]			#true values
-	values=np.zeros([100,16])		#setup for image generation
+	trainSet=rawData[:100,0:64]					#64 data points
+	labels=rawData[:100,64]						#true values
+	values=np.zeros([100,16])					#setup for image generation
 	
 	for i in range(100):
 		for k in range(16):
@@ -31,55 +35,33 @@ def dataSetup():
 	for k in range(64):
 			r=trainSet[2,k]*15
 	                c=Circle(Point(30+(k%8)*20,300+math.floor(k/8)*20),10);c.setFill(color_rgb(r,r,r));c.draw(panel)	#graphing long set
-	input=trainSet[0,:]	#first entry of 64 points
-	print input[2]
+	inputData=trainSet[0,:];print trainSet[0,:]			#first entry of 64 points
 
 dataSetup()
 
-for i in range(l):	#point and matrix creation
-	w=[]
-	list=[]
-	for m in range(net[i]):list.append(m)	#weights and bias
-	dictPos[i]=list
-
+for i in range(l):							#point and matrix creation
 	for k in range(net[i]):
-		w=[];b=[]
-		for j in range(net[i-1]):
-			g=random.randint(0,100);f=random.randint(0,10)
-			w.append(g);b.append(f)
+		w=[];b=random.randint(-100,0)/200.0
+		for j in range(maxNeurons):
+			w.append(1)#random.randint(-100,100)/100.0)
 		p=Point(int(200+400/l+i*180),int(600-500*k/(net[i]-1)))
-		dictPos[i][k]=[p,0,w,b,'+']	#actual dictionary
+		dictPos[i,k]=p
+		netA[i,k]=0;netW[i,k]=w;netB[i,k]=b
 		c=Circle(p,6);c.draw(panel)
 
-for i in range(1,l):	#weight graphing
+for i in range(1,l):							#weight graphing
 	for k in range(net[i]):
-		for r in range(len(dictPos[i][k][2])):
-			t=dictPos[i][k][2][r]*255/100
-			line=Line(dictPos[i][k][0],dictPos[i-1][r][0])
-			line.setFill(color_rgb(t,t,t));line.draw(panel)
+		for r in range(net[i-1]):
+			t=255/(1+math.e**(-3*netW[i,k,r]))
+			line=Line(dictPos[i,k],dictPos[i-1,r]);line.setFill(color_rgb(t,t,t));line.draw(panel)
 
-list=[]
-print dictPos
-for m in range(net[0]):list.append(m);dictPos[0]=list
-for i in range(net[0]):dictPos[0][i][1]=3#input[i]/16.0
-print dictPos
-
-def frame():
-	exp=np.zeros([l,1])
-	for i in range (2,l):
-		for k in range(net[i]):
-        	        for r in range(len(dictPos[i][k][2])):
-        	                t=dictPos[i][k][2][r]
-        	                dictPos[i][k][1]+=round(dictPos[i][k][2][r]*dictPos[i-1][r][1]/100.000,3)
-			dictPos[i][k][1]=round(s(dictPos[i][k][1]),3)
-	for i in range (1,l):
-        	for k in range(net[i]):
-			p=Point(int(200+400/l+i*180),int(600-500*k/(net[i]-1)))
-			c=Circle(p,6);c.setFill(color_rgb(dictPos[i][k][1]*255,dictPos[i][k][1]*255,dictPos[i][k][1]*255));c.draw(panel)
-	print dictPos[l-1][:][1]
-	#cost=(exp-dictPos[l-1][:][1])**2;print cost
-	panel.update()
-frame()
+def frame():								#feed-forward using inputs
+	for i in range(l-1):
+		netA[i+1]=sigmoid(np.dot(netW[i+1],netA[i])+netB[i+1])
+		for k in range(net[i+1]):
+			c=Circle(dictPos[i+1,k],6);c.setFill(color_rgb(netA[i+1,k]*255,netA[i+1,k]*255,netA[i+1,k]*255));c.draw(panel)
+	return netA[-1];panel.update()
+print frame()
 
 #for i in range (1,l):
 #        for k in range(net[i]):
