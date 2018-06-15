@@ -16,7 +16,7 @@ yConstant=0;xConstant=0;origin=Point(100,400)
 panel=GraphWin("piGraph by John Skelton 2016-2017",1200,800,autoflush=False)
 
 #data=numpy.array([[0,1,2,3,4,5,6,7,8,9,10],[0,0.2,0.4,0.7,0.85,0.97,1.23,1.35,1.65,1.8,2.0]])
-data=numpy.array([[-2.5,-1.5,-0.5,0.5,1.5,2.5],[6.25,2.25,0.25,0.25,2.25,6.25]])
+dataSet=numpy.array([[-2.5,-1.5,-0.5,0.5,1.5,2.5],[6.25,2.25,0.25,0.25,2.25,6.25]])
 
 def direct():
 	print("parameters : (xMin,xMax,ymin,yMax,xInterval,yInterval,Grid)");peri=raw_input()
@@ -29,8 +29,8 @@ def direct():
 	global yInterval;yInterval=float(peri[5])
 	global grid;grid=int(peri[6])
 	global remote;remote=False
-	global dmxPoint;dmxPoint=len((peri[1]+".").split('.')[1])
-        global dmyPoint;dmyPoint=len((peri[3]+".").split('.')[1])
+	global dmxPoint;dmxPoint=len((peri[4]+".").split('.')[1]);print dmxPoint
+        global dmyPoint;dmyPoint=len((peri[5]+".").split('.')[1])
 	setup()
 
 def remote(a,b,c,d):
@@ -65,48 +65,69 @@ def createLabels():
 		x=Text(Point(940,u),"x");x.draw(panel);y=Text(Point(v,57),"y");y.draw(panel)
 
 		for i in range(int(((xMax-xMin)/xInterval))+1):
-                        xP=int(100+xInterval/xConstant*i);r=round(xMin+xInterval*i,dmxPoint)
-			if int(r)==0:r=None
-                        text=Text(Point(xP+11+len(str(r)),u+9*pos(origin.y-50)),r);text.draw(panel)
+                        xP=int(100+xInterval/xConstant*i)
+			if dmxPoint==0:r=int(xMin+xInterval*i)
+			else: r=round(xMin+xInterval*i,dmxPoint)
+			if r==0:r=None
+                        text=Text(Point(xP+4+3*len(str(r)),u+9*pos(origin.y-50)),r);text.draw(panel)
 			marker=Line(Point(xP,720),Point(xP,80));marker.draw(panel)
 
 		for i in range(int(((yMax-yMin)/yInterval))+1):
-                        yP=int(720-yInterval/yConstant*i);r=round(yMin+yInterval*i,dmyPoint)
-			if int(r)==0:r=None
-                        text=Text(Point(v+pos(origin.x-100)*(2+3*len(str(r))),yP-9),r);text.draw(panel)
+                        yP=int(720-yInterval/yConstant*i)
+			if dmyPoint==0:r=int(yMin+yInterval*i)
+			else: r=round(xMin+xInterval*i,dmxPoint)
+			if r==0:r=None
+                        text=Text(Point(v+pos(origin.x-100)*(3+3*len(str(r))),yP-8),r);text.draw(panel)
                         marker=Line(Point(100,yP),Point(900,yP));marker.draw(panel)
 
 
-def setGraph(function,ddx,int):
-	x=0;r=0.5;xIntercepts=[];yIntercept=0#float(eval(function))
-	p=numpy.full(801,str(function),dtype='|S100');idx=numpy.array(range(801))*xConstant+xMin;o=idx;idx=idx.astype('|S20')
+def plot(function,res,derivative,integral):
+	res=int(res)
+	x=0;r=0.5;xIntercepts=[];localExtrema=[]
+	try:yIntercept=float(eval(function))
+	except ValueError:yIntercept="N/A"
+
+	p=numpy.full(res*800+1,str(function),dtype='|S100');idx=numpy.array(range(res*800+1))*xConstant/res+xMin;o=idx;idx=idx.astype('|S20')
 	idx=numpy.core.defchararray.add("(",idx);idx=numpy.core.defchararray.add(idx,")")
 	p=numpy.core.defchararray.replace(p,'x',idx);p=quickEval(p)
 
-	#for intercept, pos(f,g) changes OR f'(x)=g'(x)
-
 	for i in range(799):
-		if yMin<p[i]<yMax:
-			graphLine((o[i],p[i]),(o[i+1],p[i+1]),"black")
-			k=intersect(p[i],p[i+1],i*xConstant+xMin,(i+1)*xConstant+xMin)
-			if k!=None and round(k,4) not in xIntercepts: xIntercepts.append(round(k,4))
-			if ddx==1:graphLine((o[i],(p[i+1]-p[i])/xConstant),(o[i+1],(p[i+2]-p[i+1])/xConstant),"blue")
-	#	if int==1:graphLine((k1,(400-(r+0.5)*sumPos1-(-r+0.5)*sumNeg1)),(k2,(400-(r+0.5)*sumPos2-(-r+0.5)*sumNeg2)),"red")
+		j=res*i
+		if yMin<p[j]<yMax and yMin<p[j+1]<yMax:
+			graphLine((o[j],p[j]),(o[j+res],p[j+res]),"black")
+			for u in range(res):
+				h=intersect(p[j+u],p[j+u+1],(j+u)*xConstant/res+xMin,(j+u+1)*xConstant/res+xMin)
+				if h!=None and round(h,4) not in xIntercepts: xIntercepts.append(round(h,4))	
+	if derivative==1:
+		k=ddx(p)
+		for i in range(798):
+			j=res*i
+			if yMin<k[j]<yMax and yMin<k[j+1]<yMax:
+				graphLine((o[j],res*k[j]),(o[j+res],res*k[j+res]),"blue")
+				for u in range(res):
+        	                        h=intersect(k[j+u],k[j+u+1],(j+u)*xConstant/res+xMin,(j+u+1)*xConstant/res+xMin)
+                	                if h!=None and round(h,4) not in localExtrema: localExtrema.append(round(h,4))
 
-	print "x-intercepts: "+str(xIntercepts);print "y-intercept: "+str(yIntercept);functions.append(p);panel.update();print functions
+	if integral==1:
+		for i in range(799):
+			j=res*i;graphLine((o[j],numpy.sum(p[:j])/res),(o[j+1],numpy.sum(p[:j])/res),"red")
+
+	print "x-intercepts: "+str(xIntercepts);print "y-intercept: "+str(yIntercept);print "local extrema: "+str(localExtrema);functions.append(p);panel.update()
+
+def ddx(k):
+	return (k[1:-1]-k[0:-2])/xConstant
 
 def graphLine(x,y,c):
         line=Line(Point(x[0]/xConstant+origin.x,-x[1]/yConstant+origin.y),Point(y[0]/xConstant+origin.x,-y[1]/yConstant+origin.y))
 	line.setFill(c)
         line.draw(panel)
 
-def remoteGraph(r,k):
-	K=Point(origin.x+r/xConstant,origin.y-k/yConstant)
-	circ=Circle(K,1);circ.draw(panel)
-	#l=Line(K,Point(K.x,400));l.draw(panel)
+def pointPlot(x,y):
+	k=Point(x/xConstant+origin.x,-y/yConstant+origin.y)
+	circ=Circle(k,1);circ.draw(panel);#l=Line(K,Point(K.x,400));l.draw(panel)
 	panel.update()
 
-def intersect(f,g,l,r):     #f(x),f(y),x,y
+def intersect(f,g,l,r):     #f(x),f(y),x,y      for intercept, pos(f,g) changes OR f'(x)=g'(x) and f-g~0
 	f=float(f);g=float(g);l=float(l);r=float(r)
 	if round(f,8)==0:return l
         if round(g,8)==0:
@@ -114,8 +135,8 @@ def intersect(f,g,l,r):     #f(x),f(y),x,y
 	elif pos(f)!=pos(g): return l+(r-l)/(1-g/f)
 	else: return None
 
-#def lhopitale(f,p):
-#	try
+#def lhopitale(f,g,p):
+#	differentiate f and g numerically, then divide (perhaps regression?)
 
 def cis(x):
 	return cos(x)+1j*sin(x)
@@ -148,7 +169,7 @@ def leastSquares(f,a,g):
 	for i in range(data[0,:].size):
 		c=Circle(point(data[:,i][0],data[:,i][1]),3);c.draw(panel)
 
-	#setGraph()
+	#plot()
 
 def point(r,k):
 	return Point(r/xConstant+origin.x,-k/yConstant+origin.y)
@@ -157,13 +178,23 @@ def clear():
 	panel.delete("all");createLabels()
 
 def qEval(a):
-	return eval(a)
+	try: return eval(a)
+	except ValueError:
+		return NaN
 quickEval=numpy.vectorize(qEval)
 
 def qPlot(x,y,c):
 	panel.plot(x,y-100,color_rgb(c%16*15,c%4*63,c%2*30))
 	#panel.plot(x,y-100,color_rgb((c>>8)&0xff,c>>16,c&0xff))
 quickPlot=numpy.vectorize(qPlot)
+
+def barGraph(data):
+	for i in range(len(data[1])):
+		rect=Rectangle(point(data[0,i]-0.5,0),point(data[0,i]+0.5,data[1,i]));rect.setFill("blue");rect.draw(panel)
+
+def lineGraph(data):
+	for i in range(len(data[1])-1):
+		l=Line(point(data[0,i],data[1,i]),point(data[0,i+1],data[1,i+1]));l.draw(panel)
 
 #################################### MAIN ###################################
 
@@ -186,9 +217,9 @@ def f(function):
 	global functionStore
 
 	if function=="mandelbrot":
-		for g in range(20):
+		for g in range(1):
 			t=Text(Point(50,50),"Zoom=%s" %(round(1.0/(0.9**g),3)));t.draw(panel)
-			w=1000;z=0.9**g*4.0;x=0.360240443437614363236125244;y=-0.6413130610648031748603750151793020665;n=400
+			w=1000;z=1;x=-0.6;y=-0.5;n=300#;z=0.9**g*4.0;x=0.360240443437614363236125244;y=-0.6413130610648031748603750151793020665;n=400
 			fM=numpy.zeros([w,w],dtype=complex);kM=numpy.zeros([w,w,3])
 			for i in range(w):
 				for k in range(w):
@@ -196,7 +227,7 @@ def f(function):
 			init=fM;print fM
 	
 			for i in range(1,n+1):
-				fM=fM*fM+init
+				fM=(abs(fM.real)+abs(fM.imag)*1j)**2+init
 				kM[abs(fM)>2,2]=i;init[abs(fM)>2]=0;fM[abs(fM)>2]=0
 				print i
 			print "graphing"
@@ -213,7 +244,7 @@ def f(function):
 			#	#print (i-800.00)/800*n,(i-800.00)/800*n+xConstant,r[i]
 			quickPlot(kM[:,:,0],kM[:,:,1],kM[:,:,2])
 			
-			panel.update();print g;saveFile("MandelRes%s.jpg" %(g));panel.delete("all")
+			panel.update()#;print g;saveFile("MandelRes%s.jpg" %(g));panel.delete("all")
 		#	z=0+0j
                 #        c=-0.5+1j
                 #        for n in range(g):
@@ -236,6 +267,22 @@ def f(function):
                 	                if abs(w)<10:w=w**2+wC
                 	        graphLine((zC,z),(wC,w),"black")
 			panel.update()
+
+	if function=="oliver": #single variable regression
+		input=numpy.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99])
+		output=numpy.array([86,135,179,224,242,244,245,270,309,436,528,528,599,759,844,964,1048,1201,1617,1835,2225,3052,3944,4366,5325,6242,7157,8011,8973,9911,13676,13015,14068,15113,15901,17111,17908,18569,19463,20171,20712,21261,21689,22057,22460,22859,23218,23694,23934,24247,24666,24872,25178,25515,25791,26101,26298,26648,26763,26979,27055,27173,27275,27352,27479,27540,27585,27642,27705,27748,27890,27948,27982,28051,28102,28160,28245,28319,28408,28421,28466,28504,28546,28581,28599,28598,28601,28601,28601,28604,28601,28601,28601,28601,28602,28603,28603,28603,28603,28603])
+		for i in range(800):
+			k1=0.2/800*i
+			reg=[0,0,0,0,0,0]
+			for u in range(3):
+				k=0.2/800*(i+u)
+				reg[u+3]=k
+				reg[u]=(86*28603)/((28603-86)*math.e**(-k*input)+86)
+				reg[u]=(reg[u]-output)**2
+				reg[u]=math.log(numpy.sum(reg[u]))
+			graphLine([reg[3],reg[0]],[reg[4],reg[1]],"blue")
+			print intersect(reg[1]-reg[0],reg[2]-reg[1],reg[4],reg[3])
+			#print reg[1]-reg[0],reg[2]-reg[1]
 
 	if function=="complex":
 		map=numpy.zeros([500,100],dtype=complex);cmap=numpy.zeros([500,100],dtype=complex)
