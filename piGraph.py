@@ -93,20 +93,20 @@ def plot(function,res,derivative,integral):
 
 	for i in range(799):
 		j=res*i
-		if yMin<p[j]<yMax and yMin<p[j+1]<yMax:
-			graphLine((o[j],p[j]),(o[j+res],p[j+res]),"black")
-			for u in range(res):
-				h=intersect(p[j+u],p[j+u+1],(j+u)*xConstant/res+xMin,(j+u+1)*xConstant/res+xMin)
-				if h!=None and round(h,4) not in xIntercepts: xIntercepts.append(round(h,4))	
+		#if yMin<p[j]<yMax and yMin<p[j+1]<yMax:
+		graphLine((o[j],p[j]),(o[j+res],p[j+res]),"black")
+		for u in range(res):
+			h=intersect(p[j+u],p[j+u+1],(j+u)*xConstant/res+xMin,(j+u+1)*xConstant/res+xMin)
+			if h!=None and round(h,4) not in xIntercepts: xIntercepts.append(round(h,4))	
 	if derivative==1:
 		k=ddx(p)
 		for i in range(798):
 			j=res*i
-			if yMin<k[j]<yMax and yMin<k[j+1]<yMax:
-				graphLine((o[j],res*k[j]),(o[j+res],res*k[j+res]),"blue")
-				for u in range(res):
-        	                        h=intersect(k[j+u],k[j+u+1],(j+u)*xConstant/res+xMin,(j+u+1)*xConstant/res+xMin)
-                	                if h!=None and round(h,4) not in localExtrema: localExtrema.append(round(h,4))
+			#if yMin<k[j]<yMax and yMin<k[j+1]<yMax:
+			graphLine((o[j],res*k[j]),(o[j+res],res*k[j+res]),"blue")
+			for u in range(res):
+        	               h=intersect(k[j+u],k[j+u+1],(j+u)*xConstant/res+xMin,(j+u+1)*xConstant/res+xMin)
+                               if h!=None and round(h,4) not in localExtrema: localExtrema.append(round(h,4))
 
 	if integral==1:
 		for i in range(799):
