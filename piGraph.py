@@ -10,7 +10,7 @@ def saveFile(title):
 
 ################################### SETUP #####################################
 
-remote=0;xMax=0;yMax=0;xInterval=0;yInterval=0;xGridsize=0;yGridsize=0;yLabelShift=20;xLabels=0;yLabels=0;xOffset=100;yOffset=80
+xMax=0;yMax=0;xInterval=0;yInterval=0;xGridsize=0;yGridsize=0;yLabelShift=20;xLabels=0;yLabels=0;xOffset=100;yOffset=80
 yConstant=0;xConstant=0;origin=Point(100,400)
 
 panel=GraphWin("piGraph by John Skelton 2016-2017",1200,800,autoflush=False)
@@ -28,17 +28,20 @@ def direct():
 	global xInterval;xInterval=float(peri[4])
 	global yInterval;yInterval=float(peri[5])
 	global grid;grid=int(peri[6])
-	global remote;remote=False
-	global dmxPoint;dmxPoint=len((peri[4]+".").split('.')[1]);print dmxPoint
+	global dmxPoint;dmxPoint=len((peri[4]+".").split('.')[1])
         global dmyPoint;dmyPoint=len((peri[5]+".").split('.')[1])
 	setup()
 
-def remote(a,b,c,d):
-	global xMax;xMax=a
-        global yMax;yMax=b
-        global xInterval;xInterval=c
-        global yInterval;yInterval=d
-	global remote;remote=True
+def remote(a,b,c,d,e,f,g):
+	global xMin;xMin=a
+	global xMax;xMax=b
+	global yMin;yMin=c
+        global yMax;yMax=d
+        global xInterval;xInterval=e
+        global yInterval;yInterval=f
+	global grid;grid=g
+	global dmxPoint;dmxPoint=len((str(e)+".").split('.')[1])
+        global dmyPoint;dmyPoint=len((str(f)+".").split('.')[1])
 	setup()
 
 def setup():

@@ -4,21 +4,25 @@ import random
 import math
 from graphics import *
 from PIL import Image
+import piGraph
 
 ######################SETUP#############################
 def s(x):
-	if x>10 or x<-10:y=1
+	if x>10:y=1.0
+	elif x<-10:y=-1.0
 	else:y=1/(1+math.e**(-x))
-	if y==0.5: return 0
+	if y==0.5: return 0.0
 	else: return y
 sigmoid=np.vectorize(s)
 panel=GraphWin("jNet",1100,750,autoflush=False)
 
-net=np.array([64,10,10]);maxNeurons=max(net);l=len(net);eta=0.5
+net=np.array([64,8,10]);maxNeurons=max(net);l=len(net);eta=0.5
 dictPos=np.empty([l,maxNeurons],dtype=object)					#position array ([layers,neurons,contents (a,w,b)])
 netA=np.zeros([l,maxNeurons]);netW=np.zeros([l,maxNeurons,maxNeurons]);netB=np.zeros([l,maxNeurons])
 gradientW=np.zeros([l,maxNeurons,maxNeurons]);gradientA=np.zeros([l,maxNeurons]);gradientB=np.zeros([l,maxNeurons])
 costIndex=np.array([]);WList=np.array([]);BList=np.array([])
+
+piGraph.remote(0,18000,0,1,1000,0.1,1)
 
 def clear():
         panel.delete("all")
@@ -73,7 +77,7 @@ def frame(v,graphics):
 	y=np.zeros([maxNeurons]);y[int(labels[v])]=1
 	cost=np.sum((netA[-1][:10]-y[:10])**2)
 	out=np.array([y,netA,netW,netB,cost])
-	return out;panel.update()
+	return out
 
 def backprop(i,n):	#start with n=1
 	global gradientA,gradientB,gradientW
@@ -98,24 +102,29 @@ def backprop(i,n):	#start with n=1
 	if n<l-2:backprop(i,n+1)
 	return [gradientW,gradientB,g[4]]
 
-def train(maxIter,batch):
+def train(epoch,maxIter,batch):
 	global netW,netB,costIndex
-	for u in range(int(maxIter/batch)):
-		tA=np.zeros([l,maxNeurons]);tW=np.zeros([l,maxNeurons,maxNeurons]);tB=np.zeros([l,maxNeurons]);tC=0
-		for i in range(batch):
-			p=backprop(i,1)
-			tW+=p[0];tB+=p[1];tC+=p[2]
-		b=float(batch)
-		tW=tW/b;tB=tB/b;tC=tC/b
-		print "cost",round(tC,3)
-		#np.append(costIndex,tC);np.append(WList,netW);np.append(BList,netB)
-		netW=netW-eta*tW;netB=netB-eta*tB
+	for r in range(epoch):
+		for u in range(int(maxIter/batch)):
+			tA=np.zeros([l,maxNeurons]);tW=np.zeros([l,maxNeurons,maxNeurons]);tB=np.zeros([l,maxNeurons]);tC=0
+			for i in range(batch):
+				p=backprop(i,1)
+				tW+=p[0];tB+=p[1];tC+=p[2]
+			b=float(batch)
+			tW=tW/b;tB=tB/b;tC=tC/b
+			print "cost",round(tC,3)
+			#np.append(costIndex,tC);np.append(WList,netW);np.append(BList,netB)
+			netW=netW-eta*tW;netB=netB-eta*tB
+			piGraph.pointPlot(r*maxIter+u*b,tC)
 	#print WList[np.argmin(costIndex)],BList[np.argmin(costIndex)]
 
 def classify(start,i):
+	counter=0.0
 	for u in range(i):
 		g=frame(start+u,1)
 		if np.argmax(g[1][-1])==labels[start+u]:
 			print "correct, "+str(np.argmax(g[1][-1]))
+			counter+=1
 		else:
 			print "wrong, got "+str(np.argmax(g[1][-1]))+" instead of "+str(int(labels[start+u])	)
+	print "total "+str(100.0*counter/i)
