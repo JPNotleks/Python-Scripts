@@ -16,13 +16,13 @@ def s(x):
 sigmoid=np.vectorize(s)
 panel=GraphWin("jNet",1100,750,autoflush=False)
 
-net=np.array([64,8,10]);maxNeurons=max(net);l=len(net);eta=0.5
+net=np.array([64,10]);maxNeurons=max(net);l=len(net);eta=0.05
 dictPos=np.empty([l,maxNeurons],dtype=object)					#position array ([layers,neurons,contents (a,w,b)])
 netA=np.zeros([l,maxNeurons]);netW=np.zeros([l,maxNeurons,maxNeurons]);netB=np.zeros([l,maxNeurons])
 gradientW=np.zeros([l,maxNeurons,maxNeurons]);gradientA=np.zeros([l,maxNeurons]);gradientB=np.zeros([l,maxNeurons])
 costIndex=np.array([]);WList=np.array([]);BList=np.array([])
 
-piGraph.remote(0,18000,0,1,1000,0.1,1)
+piGraph.remote(0,18000,0,4,1000,0.1,1)
 
 def clear():
         panel.delete("all")
@@ -102,26 +102,26 @@ def backprop(i,n):	#start with n=1
 	if n<l-2:backprop(i,n+1)
 	return [gradientW,gradientB,g[4]]
 
-def train(epoch,maxIter,batch):
+def train(epoch,maxIter,batch,rate):
 	global netW,netB,costIndex
 	for r in range(epoch):
 		for u in range(int(maxIter/batch)):
 			tA=np.zeros([l,maxNeurons]);tW=np.zeros([l,maxNeurons,maxNeurons]);tB=np.zeros([l,maxNeurons]);tC=0
 			for i in range(batch):
-				p=backprop(i,1)
+				p=backprop(u*batch+i,1)
 				tW+=p[0];tB+=p[1];tC+=p[2]
 			b=float(batch)
 			tW=tW/b;tB=tB/b;tC=tC/b
 			print "cost",round(tC,3)
 			#np.append(costIndex,tC);np.append(WList,netW);np.append(BList,netB)
-			netW=netW-eta*tW;netB=netB-eta*tB
+			netW=netW-rate*tW;netB=netB-rate*tB
 			piGraph.pointPlot(r*maxIter+u*b,tC)
 	#print WList[np.argmin(costIndex)],BList[np.argmin(costIndex)]
 
 def classify(start,i):
 	counter=0.0
 	for u in range(i):
-		g=frame(start+u,1)
+		g=frame(start+u,0)
 		if np.argmax(g[1][-1])==labels[start+u]:
 			print "correct, "+str(np.argmax(g[1][-1]))
 			counter+=1
