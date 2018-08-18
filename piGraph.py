@@ -2,6 +2,7 @@ from graphics import *
 import numpy
 from numpy import *
 import cmath
+import math
 
 from PIL import ImageGrab
 
@@ -11,9 +12,9 @@ def saveFile(title):
 ################################### SETUP #####################################
 
 xMax=0;yMax=0;xInterval=0;yInterval=0;xGridsize=0;yGridsize=0;yLabelShift=20;xLabels=0;yLabels=0;xOffset=100;yOffset=80
-yConstant=0;xConstant=0;origin=Point(100,400)
+yConstant=0;xConstant=0;pMatrix=0;origin=Point(100,400);globTrans=[0,0]
 
-panel=GraphWin("piGraph by John Skelton 2016-2017",1200,800,autoflush=False)
+panel=GraphWin("piGraph by John Skelton 2016-2018",1200,800,autoflush=False)
 
 #data=numpy.array([[0,1,2,3,4,5,6,7,8,9,10],[0,0.2,0.4,0.7,0.85,0.97,1.23,1.35,1.65,1.8,2.0]])
 dataSet=numpy.array([[-2.5,-1.5,-0.5,0.5,1.5,2.5],[6.25,2.25,0.25,0.25,2.25,6.25]])
@@ -30,6 +31,7 @@ def direct():
 	global grid;grid=int(peri[6])
 	global dmxPoint;dmxPoint=len((peri[4]+".").split('.')[1])
         global dmyPoint;dmyPoint=len((peri[5]+".").split('.')[1])
+	global pMatrix;pMatrix=numpy.array([[1,0],[0.4,0.6]])
 	setup()
 
 def remote(a,b,c,d,e,f,g):
@@ -54,41 +56,41 @@ def setup():
 	
 def createLabels():
 	if grid==1:
-		global origin;origin=Point(-xMin/xConstant+100,yMax/yConstant+80)
+		global origin;origin=Point(500,400)#origin=Point(-xMin/xConstant+100,yMax/yConstant+80);print origin
 		if 80<origin.y<720:
-			xaxis=Rectangle(Point(85,origin.y-1),Point(915,origin.y+1));xaxis.setFill("black");xaxis.draw(panel);u=origin.y
-                else:
-			xaxis=Rectangle(Point(85,399+320*pos(origin.y-400)),Point(915,401+320*pos(origin.y-400)));xaxis.setFill("black")
+			xaxis=Line(rawPoint(85,origin.y-1),rawPoint(915,origin.y+1));xaxis.setWidth(3);xaxis.setFill("black");xaxis.draw(panel);u=origin.y
+		else:
+			xaxis=Line(rawPoint(85,399+320*pos(origin.y-400)),rawPoint(915,401+320*pos(origin.y-400)));axis.setWidth(3);xaxis.setFill("black")
 			xaxis.draw(panel);u=400+320*pos(origin.y-400)
 		if 100<origin.x<900:
-			yaxis=Rectangle(Point(origin.x-1,65),Point(origin.x+1,735));yaxis.setFill("black");yaxis.draw(panel);v=origin.x
+			yaxis=Line(rawPoint(origin.x-1,65),rawPoint(origin.x+1,735));yaxis.setWidth(3);yaxis.setFill("black");yaxis.draw(panel);v=origin.x
 		else:
-			yaxis=Rectangle(Point(499+400*pos(origin.x-500),65),Point(501+400*pos(origin.x-500),735))
-			yaxis.setFill("black");yaxis.draw(panel);v=500+400*pos(origin.x-500)
-		x=Text(Point(940,u),"x");x.draw(panel);y=Text(Point(v,57),"y");y.draw(panel)
+			yaxis=Line(rawPoint(499+400*pos(origin.x-500),65),rawPoint(501+400*pos(origin.x-500),735))
+			yxis.setWidth(3);yaxis.setFill("black");yaxis.draw(panel);v=500+400*pos(origin.x-500)
+		x=Text(rawPoint(940,u),"x");x.draw(panel);y=Text(rawPoint(v,57),"y");y.draw(panel)
 
 		for i in range(int(((xMax-xMin)/xInterval))+1):
                         xP=int(100+xInterval/xConstant*i)
 			if dmxPoint==0:r=int(xMin+xInterval*i)
 			else: r=round(xMin+xInterval*i,dmxPoint)
 			if r==0:r=None
-                        text=Text(Point(xP+4+3*len(str(r)),u+9*pos(origin.y-50)),r);text.draw(panel)
-			marker=Line(Point(xP,720),Point(xP,80));marker.draw(panel)
+                        text=Text(rawPoint(xP+4+3*len(str(r)),u+9*pos(origin.y-50)),r);text.draw(panel)
+			marker=Line(rawPoint(xP,720),rawPoint(xP,80));marker.draw(panel)
 
 		for i in range(int(((yMax-yMin)/yInterval))+1):
                         yP=int(720-yInterval/yConstant*i)
 			if dmyPoint==0:r=int(yMin+yInterval*i)
-			else: r=round(xMin+xInterval*i,dmxPoint)
+			else: r=round(yMin+yInterval*i,dmyPoint)
 			if r==0:r=None
-                        text=Text(Point(v+pos(origin.x-100)*(3+3*len(str(r))),yP-8),r);text.draw(panel)
-                        marker=Line(Point(100,yP),Point(900,yP));marker.draw(panel)
+                        text=Text(rawPoint(v+pos(origin.x-100)*(3+3*len(str(r))),yP-8),r);text.draw(panel)
+                        marker=Line(rawPoint(100,yP),rawPoint(900,yP));marker.draw(panel)
 
 
 def plot(function,res,derivative,integral):
 	res=int(res)
 	x=0;r=0.5;xIntercepts=[];localExtrema=[]
 	try:yIntercept=float(eval(function))
-	except ValueError:yIntercept="N/A"
+	except:yIntercept="{}"
 
 	p=numpy.full(res*800+1,str(function),dtype='|S100');idx=numpy.array(range(res*800+1))*xConstant/res+xMin;o=idx;idx=idx.astype('|S20')
 	idx=numpy.core.defchararray.add("(",idx);idx=numpy.core.defchararray.add(idx,")")
@@ -111,22 +113,31 @@ def plot(function,res,derivative,integral):
         	               h=intersect(k[j+u],k[j+u+1],(j+u)*xConstant/res+xMin,(j+u+1)*xConstant/res+xMin)
                                if h!=None and round(h,4) not in localExtrema: localExtrema.append(round(h,4))
 
-	if integral==1:
-		for i in range(799):
-			j=res*i;graphLine((o[j],numpy.sum(p[:j])/res),(o[j+1],numpy.sum(p[:j])/res),"red")
+	if integral!=0:
+		l=(integral-xMin)*res/xConstant
+		for i in range((integral/xConstant),799):
+			j=l+res*i;graphLine((o[j],xConstant*numpy.sum(p[l:j])/res),(o[j+res],xConstant*numpy.sum(p[l:(j+res)])/res),"red")
 
 	print "x-intercepts: "+str(xIntercepts);print "y-intercept: "+str(yIntercept);print "local extrema: "+str(localExtrema);functions.append(p);panel.update()
+
+def contourIntegral(function,bound,k):
+        p=numpy.full(3201,str(function),dtype='|S100');idx=numpy.array(range(3201))**bound[1]+bound[0];o=idx;idx=idx.astype('|S20')
+        p=numpy.core.defchararray.replace(p,'z',idx);p=quickEval(p)
+
+	for i in range(3199):
+                graphLine((numpy.sum(p[0:i].real)*xConstant+k.real,numpy.sum(p[0:i].imag)*xConstant+k.imag),(numpy.sum(p[0:i+1].real)*xConstant+k.real,numpy.sum(p[0:i+1].imag)*xConstant+k.imag),"red")
+
 
 def ddx(k):
 	return (k[1:-1]-k[0:-2])/xConstant
 
 def graphLine(x,y,c):
-        line=Line(Point(x[0]/xConstant+origin.x,-x[1]/yConstant+origin.y),Point(y[0]/xConstant+origin.x,-y[1]/yConstant+origin.y))
+        line=Line(Point(x[0]/xConstant+origin.x+globTrans[0],-x[1]/yConstant+origin.y+globTrans[1]),Point(y[0]/xConstant+origin.x+globTrans[0],-y[1]/yConstant+origin.y+globTrans[1]))
 	line.setFill(c)
         line.draw(panel)
 
 def pointPlot(x,y):
-	k=Point(x/xConstant+origin.x,-y/yConstant+origin.y)
+	k=Point(x/xConstant+origin.x+globTrans[0],-y/yConstant+origin.y+globTrans[1])
 	circ=Circle(k,1);circ.draw(panel);#l=Line(K,Point(K.x,400));l.draw(panel)
 	panel.update()
 
@@ -153,13 +164,6 @@ def pos(x):
 def s(x):
         return 1/(1+math.e**(-x))
 
-
-def base(x,n):
-	return color_rgb((x>>8)&0xff,x>>16,x&0xff)
-#	if x<n:return color_rgb(0,0,x)
-#	if n<x<n**2:a=math.floor(x/n);return color_rgb(0,a,x-a*n)
-#	if n**2<x<n**3:a=math.floor(x/n**2);b=math.floor((x-a*n**2)/n);return color_rgb(a,b,x-a*n**2-b*n)
-
 def movie(k,s,e):
 	for i in range(s,e):
 		f(k);r=Rectangle(Point(300,20),Point(310,30))
@@ -175,14 +179,19 @@ def leastSquares(f,a,g):
 	#plot()
 
 def point(r,k):
-	return Point(r/xConstant+origin.x,-k/yConstant+origin.y)
+	g=numpy.dot([r,k],pMatrix)
+	return Point(g[0]/xConstant+origin.x+globTrans[0],g[1]/yConstant+origin.y+globTrans[1])
+
+def rawPoint(r,k):
+	g=numpy.dot([r,k],pMatrix)
+	return Point(g[0]+globTrans[0],g[1]+globTrans[1])
 
 def clear():
 	panel.delete("all");createLabels()
 
 def qEval(a):
 	try: return eval(a)
-	except ValueError:
+	except:
 		return NaN
 quickEval=numpy.vectorize(qEval)
 
@@ -350,6 +359,24 @@ def f(function):
 				if i%k==0:sum+=1
 			c=Circle(Point(500+i*0.4,400-sum*300/yMax),2);c.draw(panel)
 
+	if function=="fieldLines":
+		field=numpy.zeros([800,800],dtype='complex')
+		for i in range(800):
+                                for k in range(800):
+                                        field[i,k]=complex(i*xConstant+xMin,k*xConstant+yMin)
+		field=abs(field)#**2+field
+		for i in range(11):
+			def f(x):return(int(1/xConstant*(x*math.tan(-1+i/5.0)*xConstant)))
+			for x in range(100):
+				graphLine([field[400+x,400+f(x)].real,field[400+x,400+f(x)].imag],[field[401+x,400+f(x+1)].real,field[401+x,400+f(x+1)].imag],"red")
+				graphLine([field[401-x,400+f(-x)].real,field[401-x,400+f(-x)].imag],[field[400-x,400+f(-x-1)].real,field[400-x,400+f(-x-1)].imag],"red")
+			#def g(y):return(int(1/yConstant*(i/4.0-2+(0*yConstant))))
+                        #for y in range(399):
+                        #        graphLine([field[400+f(y),400+y].real,field[400+f(y),400+y].imag],[field[400+f(y),401+y].real,field[400+f(y),401+y].imag],"red")
+                        #        graphLine([field[400+f(-y),401-y].real,field[400+f(-y),401-y].imag],[field[400+f(-y-1),400-y].real,field[400+f(-y-1),400-y].imag],"red")
+
+
+
 	if function=="x^x":
 		for i in range(1,400):
 			x=float(i*xConstant)
@@ -391,20 +418,28 @@ def f(function):
 	if function=="pi(x)":
 		primes=[]
 		for i in range(int(xMax)):
+			x=0
         		for k in range(1,i):
                 		if i%(k)>0:
                         		x=x+1
-        			if x==i-2:
-                			primes.append(i)
-		print primes
+        		if x==i-2:
+                		primes.append(1)
+			else: primes.append(0)
+			print i
 
-		for k in range(800):
-			c=Circle(point(k*xConstant,len(primes[0:k])),1);c.draw(panel)
+		for k in range(int(xMax)):
+			if primes[k]==1:
+				graphLine([k,numpy.sum(primes[0:k])],[k,numpy.sum(primes[0:k])+1],"red")
+			graphLine([k-1,numpy.sum(primes[0:k])],[k,numpy.sum(primes[0:k])],"red")
 
+		#for k in range(800):
+		#	c=Circle(point(k*xConstant,len(primes[0:k])),1);c.draw(panel)
 	panel.update()
 	
 ###################################### END ####################################
-	
+
+def save(title):
+	panel.postscript(file=str(title+".ps"), colormode='color')	
 #final=raw_input()
 #if final=="save":
 #	saveImage=Image(xMax,yMax)

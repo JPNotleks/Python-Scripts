@@ -16,16 +16,30 @@ def s(x):
 sigmoid=np.vectorize(s)
 panel=GraphWin("jNet",1100,750,autoflush=False)
 
-net=np.array([64,10]);maxNeurons=max(net);l=len(net);eta=0.05
-dictPos=np.empty([l,maxNeurons],dtype=object)					#position array ([layers,neurons,contents (a,w,b)])
-netA=np.zeros([l,maxNeurons]);netW=np.zeros([l,maxNeurons,maxNeurons]);netB=np.zeros([l,maxNeurons])
-gradientW=np.zeros([l,maxNeurons,maxNeurons]);gradientA=np.zeros([l,maxNeurons]);gradientB=np.zeros([l,maxNeurons])
-costIndex=np.array([]);WList=np.array([]);BList=np.array([])
+eta=0.05;maxNeurons=0;l=0;net=0;netA=0;netB=0;netW=0;l=0;maxNeurons=0;dictPos=0;gradientW=0;gradientA=0;gradientB=0
+regressionData=np.zeros([30])
+myData=np.zeros([30])
+for i in range(30):
+	regressionData[i]=3*math.sin(2*i)+1.5	# 3,2,1.5
 
-piGraph.remote(0,18000,0,4,1000,0.1,1)
+def setGraph(yeet):
+	global net;global netA;global netB;global netW;global l;global maxNeurons;global dictPos;global gradientW;global gradientA;global gradientB
+	piGraph.remote(0,18000,0,4,1000,0.1,1)
+	net=np.array(yeet);maxNeurons=max(net);l=len(net)
+	dictPos=np.empty([l,maxNeurons],dtype=object)                                   #position array ([layers,neurons,contents (a,w,b)])
+	netA=np.zeros([l,maxNeurons]);netW=np.zeros([l,maxNeurons,maxNeurons]);netB=np.zeros([l,maxNeurons])
+	gradientW=np.zeros([l,maxNeurons,maxNeurons]);gradientA=np.zeros([l,maxNeurons]);gradientB=np.zeros([l,maxNeurons])
+	for i in range(l):                                                      #point and matrix creation
+        	for k in range(net[i]):
+        	        w=[];b=random.randint(-100,0)/500.0
+        	        for j in range(maxNeurons):
+        	                w.append(random.randint(-100,100)/100.0 if j<=net[i-1] else 0)
+        	        p=Point(int(200+400/l+i*180),int(50+600*k/(net[i]-1)))
+        	        dictPos[i,k]=p
+        	        netA[i,k]=0;netW[i,k]=w;netB[i,k]=b
+	                c=Circle(p,6);c.draw(panel)
 
-def clear():
-        panel.delete("all")
+def clear():panel.delete("all")
 
 def dataSetup():
 	rawData = np.genfromtxt('./optdigits.tra', delimiter=',')	#data import and slicing
@@ -44,17 +58,6 @@ def dataSetup():
 	                c=Circle(Point(30+(k%8)*20,290+math.floor(k/8)*20),10);c.setFill(color_rgb(r,r,r));c.draw(panel)	#graphing long set
 	global inputData;inputData=trainSet											#first entry of 64 points
 dataSetup()
-
-
-for i in range(l):							#point and matrix creation
-	for k in range(net[i]):
-		w=[];b=random.randint(-100,0)/500.0
-		for j in range(maxNeurons):
-			w.append(random.randint(-100,100)/100.0 if j<=net[i-1] else 0)
-		p=Point(int(200+400/l+i*180),int(50+600*k/(net[i]-1)))
-		dictPos[i,k]=p
-		netA[i,k]=0;netW[i,k]=w;netB[i,k]=b
-		c=Circle(p,6);c.draw(panel)
 
 def graph():
 	clear()
@@ -79,9 +82,9 @@ def frame(v,graphics):
 	out=np.array([y,netA,netW,netB,cost])
 	return out
 
-def backprop(i,n):	#start with n=1
+def backprop(input,n):	#start with n=1
 	global gradientA,gradientB,gradientW
-	g=frame(i,0)
+	g=input
 	for u in range(net[-1]):
 		gradientA[-1,u]=2*(netA[-1,u]-g[0][u])					#dC/dA for a whole neuron, which makes propagation easy
 		gradientB[-1,u]=2*(netA[-1,u]-g[0][u])*netA[-1,u]*(1-netA[-1,u])
@@ -103,20 +106,38 @@ def backprop(i,n):	#start with n=1
 	return [gradientW,gradientB,g[4]]
 
 def train(epoch,maxIter,batch,rate):
-	global netW,netB,costIndex
+	global netW,netB
 	for r in range(epoch):
 		for u in range(int(maxIter/batch)):
 			tA=np.zeros([l,maxNeurons]);tW=np.zeros([l,maxNeurons,maxNeurons]);tB=np.zeros([l,maxNeurons]);tC=0
 			for i in range(batch):
-				p=backprop(u*batch+i,1)
+				p=backprop(frame(mu*batch+i),1)
 				tW+=p[0];tB+=p[1];tC+=p[2]
 			b=float(batch)
 			tW=tW/b;tB=tB/b;tC=tC/b
 			print "cost",round(tC,3)
-			#np.append(costIndex,tC);np.append(WList,netW);np.append(BList,netB)
 			netW=netW-rate*tW;netB=netB-rate*tB
 			piGraph.pointPlot(r*maxIter+u*b,tC)
-	#print WList[np.argmin(costIndex)],BList[np.argmin(costIndex)]
+
+def regression():
+	setGraph([3,30]);graph();global netA
+	a=1.0;b=1.0;c=1.0
+	for u in range(30):
+		netA[0,0]=1.0
+		netA[0,1]=1.0
+		netA[0,2]=1.0
+        	for i in range(l-1):
+        	        netA[i+1]=sigmoid(np.dot(netW[i+1],netA[i])+netB[i+1])
+		for i in range(30):
+			myData[i]=a*math.sin(b*i)+c
+		y=regressionData;cost=np.sum((regressionData-myData)**2)
+		b=backprop(np.array([y,netA,netW,netB,cost]),1)
+		totalGradient0=np.sum(b[0][-1,:,0])
+		totalGradient1=np.sum(b[0][-1,:,1])
+		totalGradient2=np.sum(b[0][-1,:,2])
+		netW[-1,:,0]+=-eta*totalGradient0;a+=-eta*totalGradient0
+		netW[-1,:,1]+=-eta*totalGradient1;b+=-eta*totalGradient1
+		netW[-1,:,2]+=-eta*totalGradient2;c+=-eta*totalGradient2
 
 def classify(start,i):
 	counter=0.0
