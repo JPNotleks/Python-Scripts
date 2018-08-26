@@ -12,9 +12,9 @@ def saveFile(title):
 ################################### SETUP #####################################
 
 xMax=0;yMax=0;xInterval=0;yInterval=0;xGridsize=0;yGridsize=0;yLabelShift=20;xLabels=0;yLabels=0;xOffset=100;yOffset=80
-yConstant=0;xConstant=0;pMatrix=0;origin=Point(100,400);globTrans=[0,0]
+yConstant=0;xConstant=0;pMatrix=0;globTrans=[0,0]
 
-panel=GraphWin("piGraph by John Skelton 2016-2018",1200,800,autoflush=False)
+panel=GraphWin("piGraph biy John Skelton 2016-2018",1200,800,autoflush=False);panel.setCoords(-500,-400,700,400)
 
 #data=numpy.array([[0,1,2,3,4,5,6,7,8,9,10],[0,0.2,0.4,0.7,0.85,0.97,1.23,1.35,1.65,1.8,2.0]])
 dataSet=numpy.array([[-2.5,-1.5,-0.5,0.5,1.5,2.5],[6.25,2.25,0.25,0.25,2.25,6.25]])
@@ -31,7 +31,7 @@ def direct():
 	global grid;grid=int(peri[6])
 	global dmxPoint;dmxPoint=len((peri[4]+".").split('.')[1])
         global dmyPoint;dmyPoint=len((peri[5]+".").split('.')[1])
-	global pMatrix;pMatrix=numpy.array([[1,0],[0.4,0.6]])
+	global pMatrix;pMatrix=numpy.array([[1,0],[0,1]])#side view right [[0.2,-0.5],[0.8,0.2]]
 	setup()
 
 def remote(a,b,c,d,e,f,g):
@@ -53,38 +53,74 @@ def setup():
 	global yConstant;yConstant=float(yMax-yMin)/640
 	global functions;functions=[]
 	createLabels()
-	
+
+#plane is origin (500+-400,400+-320)
+
 def createLabels():
 	if grid==1:
-		global origin;origin=Point(500,400)#origin=Point(-xMin/xConstant+100,yMax/yConstant+80);print origin
-		if 80<origin.y<720:
-			xaxis=Line(rawPoint(85,origin.y-1),rawPoint(915,origin.y+1));xaxis.setWidth(3);xaxis.setFill("black");xaxis.draw(panel);u=origin.y
+		global origin;origin=[-(xMax+xMin)/(2*xConstant),-(yMin+yMax)/(2*yConstant)]
+		if yMin<0 and yMax>0:
+			xaxis=Line(rawPoint(-415,origin[1]),rawPoint(415,origin[1]))
+			xaxis.setWidth(3);xaxis.setFill("black");xaxis.draw(panel);u=origin[1]
 		else:
-			xaxis=Line(rawPoint(85,399+320*pos(origin.y-400)),rawPoint(915,401+320*pos(origin.y-400)));axis.setWidth(3);xaxis.setFill("black")
-			xaxis.draw(panel);u=400+320*pos(origin.y-400)
-		if 100<origin.x<900:
-			yaxis=Line(rawPoint(origin.x-1,65),rawPoint(origin.x+1,735));yaxis.setWidth(3);yaxis.setFill("black");yaxis.draw(panel);v=origin.x
+			xaxis=Line(rawPoint(-415,320*pos(origin[1])),rawPoint(415,320*pos(origin[1])))
+			xaxis.setWidth(3);xaxis.setFill("black");xaxis.draw(panel);u=320*pos(origin[1])
+
+		if xMin<0 and xMax>0:
+			yaxis=Line(rawPoint(origin[0],-335),rawPoint(origin[0],335))
+			yaxis.setWidth(3);yaxis.setFill("black");yaxis.draw(panel);v=origin[0]
 		else:
-			yaxis=Line(rawPoint(499+400*pos(origin.x-500),65),rawPoint(501+400*pos(origin.x-500),735))
-			yxis.setWidth(3);yaxis.setFill("black");yaxis.draw(panel);v=500+400*pos(origin.x-500)
-		x=Text(rawPoint(940,u),"x");x.draw(panel);y=Text(rawPoint(v,57),"y");y.draw(panel)
+			yaxis=Line(rawPoint(400*pos(origin[0]),-335),rawPoint(400*pos(origin[0]),335))
+			yaxis.setWidth(3);yaxis.setFill("black");yaxis.draw(panel);v=400*pos(origin[0])
+		x=Text(rawPoint(426,u),"x");x.draw(panel);y=Text(rawPoint(v,348),"y");y.draw(panel)
 
-		for i in range(int(((xMax-xMin)/xInterval))+1):
-                        xP=int(100+xInterval/xConstant*i)
-			if dmxPoint==0:r=int(xMin+xInterval*i)
-			else: r=round(xMin+xInterval*i,dmxPoint)
-			if r==0:r=None
-                        text=Text(rawPoint(xP+4+3*len(str(r)),u+9*pos(origin.y-50)),r);text.draw(panel)
-			marker=Line(rawPoint(xP,720),rawPoint(xP,80));marker.draw(panel)
+		if yMin<0 and yMax>0:
+			for i in range(int(-xMin/xInterval)+1):
+                                xP=int(xInterval/xConstant*i)
+                                if dmxPoint==0:r=-int(xInterval*i)
+                                else: r=round(-xInterval*i,dmxPoint)
+                                if r==0:r=None
+                                text=Text(rawPoint(origin[0]-xP-pos(origin[1])*(2+3*len(str(r))),u+9*pos(origin[1])),r);text.draw(panel)
+                                marker=Line(rawPoint(origin[0]-xP,-320),rawPoint(origin[0]-xP,320));marker.draw(panel)
+			for i in range(int(xMax/xInterval)+1):
+                                xP=int(xInterval/xConstant*i)
+                                if dmxPoint==0:r=int(xInterval*i)
+                                else: r=round(xInterval*i,dmxPoint)
+                                if r==0:r=None
+                                text=Text(rawPoint(origin[0]+xP-pos(origin[1])*(2+3*len(str(r))),u+9*pos(origin[1])),r);text.draw(panel)
+                                marker=Line(rawPoint(origin[0]+xP,-320),rawPoint(origin[0]+xP,320));marker.draw(panel)
+		else:
+			for i in range(int(((xMax-xMin)/xInterval))+1):
+                                xP=int(xInterval/xConstant*i)
+                                if dmxPoint==0:r=int(xMin+xInterval*i)
+                                else: r=round(xInterval*i+xMin,dmxPoint)
+                                if r==0:r=None
+                                text=Text(rawPoint(-400+xP-pos(origin[1])*(2+3*len(str(r))),u+9*pos(origin[1])),r);text.draw(panel)
+                                marker=Line(rawPoint(-400+xP,-320),rawPoint(-400+xP,320));marker.draw(panel)
 
-		for i in range(int(((yMax-yMin)/yInterval))+1):
-                        yP=int(720-yInterval/yConstant*i)
-			if dmyPoint==0:r=int(yMin+yInterval*i)
-			else: r=round(yMin+yInterval*i,dmyPoint)
-			if r==0:r=None
-                        text=Text(rawPoint(v+pos(origin.x-100)*(3+3*len(str(r))),yP-8),r);text.draw(panel)
-                        marker=Line(rawPoint(100,yP),rawPoint(900,yP));marker.draw(panel)
-
+		if xMin<0 and xMax>0:
+                        for i in range(int(-yMin/yInterval)+1):
+                                yP=int(yInterval/yConstant*i)
+                                if dmyPoint==0:r=-int(yInterval*i)
+                                else: r=round(-yInterval*i,dmyPoint)
+                                if r==0:r=None
+                                text=Text(rawPoint(v+2+4*len(str(r)),origin[1]-yP-7*pos(origin[0])),r);text.draw(panel)
+                                marker=Line(rawPoint(-400,origin[1]-yP),rawPoint(400,origin[1]-yP));marker.draw(panel)
+                        for i in range(int(yMax/yInterval)+1):
+                                yP=int(yInterval/yConstant*i)
+                                if dmyPoint==0:r=int(yInterval*i)
+                                else: r=round(yInterval*i,dmyPoint)
+                                if r==0:r=None
+                		text=Text(rawPoint(v+2+4*len(str(r)),origin[1]+yP-7*pos(origin[0])),r);text.draw(panel)
+                                marker=Line(rawPoint(-400,origin[1]+yP),rawPoint(400,origin[1]+yP));marker.draw(panel)
+		else:
+                        for i in range(int(((yMax-yMin)/yInterval))+1):
+                                yP=int(yInterval/yConstant*i)
+                                if dmyPoint==0:r=int(yMin+yInterval*i)
+                                else: r=round(yMin+yInterval*i,dmyPoint)
+                                if r==0:r=None
+				text=Text(rawPoint(v+pos(origin[1])*(2+4*len(str(r))),-320+yP-9*pos(origin[1])),r);text.draw(panel)
+                                marker=Line(rawPoint(-400,-320+yP),rawPoint(400,-320+yP));marker.draw(panel)
 
 def plot(function,res,derivative,integral):
 	res=int(res)
@@ -120,6 +156,23 @@ def plot(function,res,derivative,integral):
 
 	print "x-intercepts: "+str(xIntercepts);print "y-intercept: "+str(yIntercept);print "local extrema: "+str(localExtrema);functions.append(p);panel.update()
 
+def complexPlot(function,res,mode):
+	u=int(res)*100
+	z=numpy.array([[[complex(round((xMax-xMin)/u*i+xMin,5),round((yMax-yMin)/u*l+yMin,5))] for i in range(u+1)] for l in range(u+1)])
+	f=eval(function)
+	if mode=="abs":data=abs(f)
+	if mode=="real":data=f.real
+	if mode=="imag":data=f.imag
+	for i in range(1,u+1):
+	        for k in range(1,u+1):
+			if data[u-i,u-k]!=inf and data[u-i,u-k+1]!=inf and data[u-i+1,u-k+1]!=inf and data[u-i+1,u-k]!=inf:
+        	        	p1=complexPoint(z[u-i,u-k][0].real,z[u-i,u-k][0].imag,0*data[u-i,u-k])
+        	        	p2=complexPoint(z[u-i,u-k+1][0].real,z[u-i,u-k+1][0].imag,0*data[u-i,u-k+1])
+        	        	p3=complexPoint(z[u-i+1,u-k+1][0].real,z[u-i+1,u-k+1][0].imag,0*data[u-i+1,u-k+1])
+        	        	p4=complexPoint(z[u-i+1,u-k][0].real,z[u-i+1,u-k][0].imag,0*data[u-i+1,u-k])
+				pol=Polygon(p1,p2,p3,p4);pol.setFill(rainbow((cmath.phase(f[u-i,u-k][0]/1000.0)/math.pi+1)/2*255))
+				pol.setOutline(rainbow((cmath.phase(f[u-i,u-k][0])/math.pi+1)/2*255));pol.draw(panel)
+
 def contourIntegral(function,bound,k):
         p=numpy.full(3201,str(function),dtype='|S100');idx=numpy.array(range(3201))**bound[1]+bound[0];o=idx;idx=idx.astype('|S20')
         p=numpy.core.defchararray.replace(p,'z',idx);p=quickEval(p)
@@ -132,7 +185,7 @@ def ddx(k):
 	return (k[1:-1]-k[0:-2])/xConstant
 
 def graphLine(x,y,c):
-        line=Line(Point(x[0]/xConstant+origin.x+globTrans[0],-x[1]/yConstant+origin.y+globTrans[1]),Point(y[0]/xConstant+origin.x+globTrans[0],-y[1]/yConstant+origin.y+globTrans[1]))
+        line=Line(point(x[0],x[1]),point(y[0],y[1]))
 	line.setFill(c)
         line.draw(panel)
 
@@ -179,26 +232,44 @@ def leastSquares(f,a,g):
 	#plot()
 
 def point(r,k):
-	g=numpy.dot([r,k],pMatrix)
-	return Point(g[0]/xConstant+origin.x+globTrans[0],g[1]/yConstant+origin.y+globTrans[1])
+	return rawPoint(origin[0]+r/xConstant,origin[1]+k/yConstant)
 
 def rawPoint(r,k):
 	g=numpy.dot([r,k],pMatrix)
 	return Point(g[0]+globTrans[0],g[1]+globTrans[1])
+
+def complexPoint(r,k,v):
+	g=numpy.dot([origin[0]+r/xConstant,origin[1]+k/yConstant],pMatrix)
+        return Point(g[0]+globTrans[0],g[1]+v+globTrans[1])	
 
 def clear():
 	panel.delete("all");createLabels()
 
 def qEval(a):
 	try: return eval(a)
-	except:
-		return NaN
+	except:return nan
 quickEval=numpy.vectorize(qEval)
 
 def qPlot(x,y,c):
 	panel.plot(x,y-100,color_rgb(c%16*15,c%4*63,c%2*30))
 	#panel.plot(x,y-100,color_rgb((c>>8)&0xff,c>>16,c&0xff))
 quickPlot=numpy.vectorize(qPlot)
+
+def rainbow(x):
+	if x>255:x=x%255
+        if 0<=x<255/6.0:
+                r=255;g=5*x;b=0
+        if 255/6.0<=x<2*255/6.0:
+                r=255-6*(x-255/6.0);g=255;b=0
+        if 2*255/6.0<=x<3*255/6.0:
+                r=0;g=255;b=5*(x-2*255/6.0)
+        if 3*255/6.0<=x<4*255/6.0:
+                r=0;g=255-5*(x-3*255/6.0);b=255
+        if 4*255/6.0<=x<=5*255/6.0:
+                r=5*(x-4*255/6.0);g=0;b=255
+	if 5*255/6.0<=x<=255:
+                r=255;g=0;b=255-6*(x-5*255/6.0)
+        return color_rgb(r,g,b)
 
 def barGraph(data):
 	for i in range(len(data[1])):
