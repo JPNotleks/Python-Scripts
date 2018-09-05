@@ -31,7 +31,7 @@ def direct():
 	global grid;grid=int(peri[6])
 	global dmxPoint;dmxPoint=len((peri[4]+".").split('.')[1])
         global dmyPoint;dmyPoint=len((peri[5]+".").split('.')[1])
-	global pMatrix;pMatrix=numpy.array([[1,0],[0,1]])#side view right [[0.2,-0.5],[0.8,0.2]]
+	global pMatrix;pMatrix=numpy.array([[0.7,0.2],[-0.4,0.7]])#[[0.7,-0.2],[0.4,0.7]];[[0.2,-0.5],[0.8,0.2]]
 	setup()
 
 def remote(a,b,c,d,e,f,g):
@@ -166,10 +166,10 @@ def complexPlot(function,res,mode):
 	for i in range(1,u+1):
 	        for k in range(1,u+1):
 			if data[u-i,u-k]!=inf and data[u-i,u-k+1]!=inf and data[u-i+1,u-k+1]!=inf and data[u-i+1,u-k]!=inf:
-        	        	p1=complexPoint(z[u-i,u-k][0].real,z[u-i,u-k][0].imag,0*data[u-i,u-k])
-        	        	p2=complexPoint(z[u-i,u-k+1][0].real,z[u-i,u-k+1][0].imag,0*data[u-i,u-k+1])
-        	        	p3=complexPoint(z[u-i+1,u-k+1][0].real,z[u-i+1,u-k+1][0].imag,0*data[u-i+1,u-k+1])
-        	        	p4=complexPoint(z[u-i+1,u-k][0].real,z[u-i+1,u-k][0].imag,0*data[u-i+1,u-k])
+        	        	p1=complexPoint(z[u-i,u-k][0].real,z[u-i,u-k][0].imag,data[u-i,u-k])
+        	        	p2=complexPoint(z[u-i,u-k+1][0].real,z[u-i,u-k+1][0].imag,data[u-i,u-k+1])
+        	        	p3=complexPoint(z[u-i+1,u-k+1][0].real,z[u-i+1,u-k+1][0].imag,data[u-i+1,u-k+1])
+        	        	p4=complexPoint(z[u-i+1,u-k][0].real,z[u-i+1,u-k][0].imag,data[u-i+1,u-k])
 				pol=Polygon(p1,p2,p3,p4);pol.setFill(rainbow((cmath.phase(f[u-i,u-k][0]/1000.0)/math.pi+1)/2*255))
 				pol.setOutline(rainbow((cmath.phase(f[u-i,u-k][0])/math.pi+1)/2*255));pol.draw(panel)
 
@@ -258,22 +258,22 @@ quickPlot=numpy.vectorize(qPlot)
 def rainbow(x):
 	if x>255:x=x%255
         if 0<=x<255/6.0:
-                r=255;g=5*x;b=0
+                r=255;g=6*x;b=0
         if 255/6.0<=x<2*255/6.0:
                 r=255-6*(x-255/6.0);g=255;b=0
         if 2*255/6.0<=x<3*255/6.0:
-                r=0;g=255;b=5*(x-2*255/6.0)
+                r=0;g=255;b=6*(x-2*255/6.0)
         if 3*255/6.0<=x<4*255/6.0:
-                r=0;g=255-5*(x-3*255/6.0);b=255
+                r=0;g=255-6*(x-3*255/6.0);b=255
         if 4*255/6.0<=x<=5*255/6.0:
-                r=5*(x-4*255/6.0);g=0;b=255
+                r=6*(x-4*255/6.0);g=0;b=255
 	if 5*255/6.0<=x<=255:
                 r=255;g=0;b=255-6*(x-5*255/6.0)
         return color_rgb(r,g,b)
 
 def barGraph(data):
 	for i in range(len(data[1])):
-		rect=Rectangle(point(data[0,i]-0.5,0),point(data[0,i]+0.5,data[1,i]));rect.setFill("blue");rect.draw(panel)
+		rect=Rectangle(point(data[0][i]-0.5,0),point(data[0][i]+0.5,data[1][i]));rect.setFill("blue");rect.draw(panel)
 
 def lineGraph(data):
 	for i in range(len(data[1])-1):

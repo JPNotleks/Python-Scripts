@@ -4,17 +4,20 @@ import math
 import numpy as np
 
 def rainbow(x):
-	if 0<=x<255/5.0:
-		r=255;g=5*x;b=0
-	if 255/5.0<=x<2*255/5.0:
-		r=255-5*(x-255/5.0);g=255;b=0
-	if 2*255/5.0<=x<3*255/5.0:
-		r=0;g=255;b=5*(x-2*255/5.0)
-	if 3*255/5.0<=x<4*255/5.0:
-		r=0;g=255-5*(x-3*255/5.0);b=255
-	if 4*255/5.0<=x<=255:
-		r=5*(x-4*255/5.0);g=0;b=255
-	print r,g,b;return [r,g,b]
+        if x>255:x=x%255
+        if 0<=x<255/6.0:
+                r=255;g=6*x;b=0
+        if 255/6.0<=x<2*255/6.0:
+                r=255-6*(x-255/6.0);g=255;b=0
+        if 2*255/6.0<=x<3*255/6.0:
+                r=0;g=255;b=6*(x-2*255/6.0)
+        if 3*255/6.0<=x<4*255/6.0:
+                r=0;g=255-6*(x-3*255/6.0);b=255
+        if 4*255/6.0<=x<=6*255/6.0:
+                r=6*(x-4*255/6.0);g=0;b=255
+        if 5*255/6.0<=x<=255:
+                r=255;g=0;b=255-6*(x-5*255/6.0)
+        return color_rgb(r,g,b)
 
 panel=GraphWin("IAtest Graphics",1200,800,autoflush=False)
 data=[]
@@ -30,7 +33,7 @@ for i in range(600):
 	data.append(cis(i*2*math.pi/600))
 data=np.array(data)
 
-k=np.array([[0,1.0],[0,0.0]]) #standard [[0.4,0.6],[0,1]]
+k=np.array([[0.4,0.6],[0,1]]) #standard [[0.4,0.6],[0,1]]
 xIndex1=np.dot([-1,0],k)
 xIndex2=np.dot([1,0],k)
 yIndex1=np.dot([0,-1],k)
@@ -51,8 +54,10 @@ for i in range(599):
 	x2=np.dot(x2,k)*200
 	l=Polygon(Point(200+i,400),Point(200+i+x1[0],400-x1[1]),Point(201+i+x2[0],400-x2[1]))
 	#l=Polygon(Point(200,400),Point(200+x1[0],400-x1[1]),Point(201+x2[0],400-x2[1]))
-	c=rainbow(abs(cmath.phase(data[i]))*255/(2.0*math.pi));c=color_rgb(c[0],c[1],c[2]);l.setFill(c);l.setOutline(c);l.draw(panel)
+	c=rainbow(((cmath.phase(data[i])/math.pi+1)/2*255))
+	l.setFill(c);l.setOutline(c);l.draw(panel)
 	l=Line(Point(200+i+x1[0],400-x1[1]),Point(201+i+x2[0],400-x2[1]));l.draw(panel)
 
+xBot=Line(Point(200+200*xIndex1[0],400-200*xIndex1[1]),Point(800+200*xIndex1[0],400-200*xIndex1[1]));xBot.draw(panel)
 xAxis=Line(Point(200+200*xIndex1[0],400-200*xIndex1[1]),Point(200+200*xIndex2[0],400-200*xIndex2[1]));xAxis.draw(panel)
 yAxis=Line(Point(200+200*yIndex1[0],400-200*yIndex1[1]),Point(200+200*yIndex2[0],400-200*yIndex2[1]));yAxis.draw(panel)
