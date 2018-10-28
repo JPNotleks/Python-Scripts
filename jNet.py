@@ -5,6 +5,7 @@ import math
 from graphics import *
 from PIL import Image
 import piGraph
+import json, codecs
 
 ######################SETUP#############################
 def s(x):
@@ -18,26 +19,42 @@ panel=GraphWin("jNet",1100,750,autoflush=False)
 
 eta=0.05;maxNeurons=0;l=0;net=0;netA=0;netB=0;netW=0;l=0;maxNeurons=0;dictPos=0;gradientW=0;gradientA=0;gradientB=0
 regressionData=np.zeros([30])
+historyW=np.zeros((100,2,64,64))
+historyB=np.zeros((100,2,64))
+historyIndices=np.full((100,2),100)
+#neuronWSave=open("neuronWeightInitialisation","w+")
+#neuronBSave=open("neuronBiasInitialisation","w+")
+#netSave=open("netSave","w+")
+
 myData=np.zeros([30])
 for i in range(30):
 	regressionData[i]=3*math.sin(2*i)+1.5	# 3,2,1.5
 
-def setGraph(yeet):
+def neuralNet(yeet):
 	global net;global netA;global netB;global netW;global l;global maxNeurons;global dictPos;global gradientW;global gradientA;global gradientB
-	piGraph.remote(0,18000,0,4,1000,0.1,1)
-	net=np.array(yeet);maxNeurons=max(net);l=len(net)
+	piGraph.axes(0,100,0,2,25,0.2,1)
+	if yeet==0:
+		net=np.array(json.loads(codecs.open("netSave.json", 'r', encoding='utf-8').read()))
+	else:
+		net=np.array(yeet)
+	maxNeurons=max(net);l=len(net)
 	dictPos=np.empty([l,maxNeurons],dtype=object)                                   #position array ([layers,neurons,contents (a,w,b)])
 	netA=np.zeros([l,maxNeurons]);netW=np.zeros([l,maxNeurons,maxNeurons]);netB=np.zeros([l,maxNeurons])
 	gradientW=np.zeros([l,maxNeurons,maxNeurons]);gradientA=np.zeros([l,maxNeurons]);gradientB=np.zeros([l,maxNeurons])
-	for i in range(l):                                                      #point and matrix creation
-        	for k in range(net[i]):
-        	        w=[];b=random.randint(-100,0)/500.0
-        	        for j in range(maxNeurons):
-        	                w.append(random.randint(-100,100)/100.0 if j<=net[i-1] else 0)
-        	        p=Point(int(200+400/l+i*180),int(50+600*k/(net[i]-1)))
-        	        dictPos[i,k]=p
-        	        netA[i,k]=0;netW[i,k]=w;netB[i,k]=b
-	                c=Circle(p,6);c.draw(panel)
+	if yeet==0:
+		netW=np.array(json.loads(codecs.open("neuronWSave.json", 'r', encoding='utf-8').read()))
+		netB=np.array(json.loads(codecs.open("neuronBSave.json", 'r', encoding='utf-8').read()))
+	else:
+		for i in range(l):                                                      #point and matrix creation
+        		for k in range(net[i]):
+        		        w=[];b=random.randint(-100,0)/500.0
+        		        for j in range(maxNeurons):
+        		                w.append(random.randint(-100,100)/100.0 if j<=net[i-1] else 0)
+        		        netW[i,k]=w;netB[i,k]=b
+	for i in range(l):
+		for k in range(net[i]):
+			p=Point(int(200+400/l+i*180),int(50+600*k/(net[i]-1)));dictPos[i,k]=p
+	graph()
 
 def clear():panel.delete("all")
 
@@ -50,14 +67,13 @@ def dataSetup():
 	for i in range(1000):
 		for k in range(16):
 			values[i,k]=(np.sum(trainSet[i,2*k:2*k+2])+np.sum(trainSet[i,2*k+8:2*k+10]))/4			#graphic pixel reduction 64->16
-	#for k in range(16):
-	#		r=values[1,k]*15
-	#		c=Circle(Point(30+(k%4)*20,100+math.floor(k/4)*20),10);c.setFill(color_rgb(r,r,r));c.draw(panel)	#graphing short set
 	for k in range(64):
 			r=trainSet[1,k]*15
 	                c=Circle(Point(30+(k%8)*20,290+math.floor(k/8)*20),10);c.setFill(color_rgb(r,r,r));c.draw(panel)	#graphing long set
 	global inputData;inputData=trainSet											#first entry of 64 points
+
 dataSetup()
+#neuralNet([64,10])
 
 def graph():
 	clear()
@@ -69,6 +85,9 @@ def graph():
 	for i in range(l):
                         for k in range(net[i]):
                                 c=Circle(dictPos[i,k],6);c.setFill(color_rgb(netA[i,k]*255,netA[i,k]*255,netA[i,k]*255));c.draw(panel)
+	for k in range(64):
+                        r=inputData[1,k]*15
+                        c=Circle(Point(30+(k%8)*20,290+math.floor(k/8)*20),10);c.setFill(color_rgb(r,r,r));c.draw(panel)
 graph()
 
 def frame(v,graphics):
@@ -78,7 +97,7 @@ def frame(v,graphics):
 	if graphics==1:
 		graph()
 	y=np.zeros([maxNeurons]);y[int(labels[v])]=1
-	cost=np.sum((netA[-1][:10]-y[:10])**2)
+	cost=np.sum((netA[-1][:net[-1]]-y[:net[-1]])**2)
 	out=np.array([y,netA,netW,netB,cost])
 	return out
 
@@ -106,18 +125,35 @@ def backprop(input,n):	#start with n=1
 	return [gradientW,gradientB,g[4]]
 
 def train(epoch,maxIter,batch,rate):
-	global netW,netB
+	global netW,netB,historyIndices,historyW,historyB;best=0
 	for r in range(epoch):
+		if best!=0:
+			netW=historyW[best]
+			netB=historyB[best]
+			print historyIndices[best]
 		for u in range(int(maxIter/batch)):
+			g=u+r*int(maxIter/batch)
 			tA=np.zeros([l,maxNeurons]);tW=np.zeros([l,maxNeurons,maxNeurons]);tB=np.zeros([l,maxNeurons]);tC=0
 			for i in range(batch):
-				p=backprop(frame(mu*batch+i),1)
+				p=backprop(frame(r*int(maxIter/batch)+u*batch+i,1),1)
 				tW+=p[0];tB+=p[1];tC+=p[2]
 			b=float(batch)
 			tW=tW/b;tB=tB/b;tC=tC/b
-			print "cost",round(tC,3)
-			netW=netW-rate*tW;netB=netB-rate*tB
-			piGraph.pointPlot(r*maxIter+u*b,tC)
+			print "cost at iteration"+" "+str(g)+" "+str(round(tC,3))
+			netW=netW-rate*tW;netB=netB-rate*tB;h=0
+			if g>100:
+				h=100%g
+			else:
+				h=g
+			historyIndices[h]=[h,tC]
+			historyW[h]=netW;historyB[h]=netB
+			piGraph.pointPlot(g,tC)
+		best=np.argsort(historyIndices[:,1])[0]
+		print best
+
+def restore(n):
+	netW=historyW[n]
+	netB=historyB[n]
 
 def regression():
 	setGraph([3,30]);graph();global netA
@@ -149,3 +185,8 @@ def classify(start,i):
 		else:
 			print "wrong, got "+str(np.argmax(g[1][-1]))+" instead of "+str(int(labels[start+u])	)
 	print "total "+str(100.0*counter/i)
+
+def save():
+	json.dump(netW.tolist(),codecs.open("neuronWSave.json", 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
+	json.dump(netB.tolist(),codecs.open("neuronBSave.json", 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)
+	json.dump(net.tolist(),codecs.open("netSave.json", 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4)

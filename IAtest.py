@@ -30,8 +30,9 @@ def cis(x):
 	return math.cos(x)+1j*math.sin(x)
 
 for i in range(600):
-	data.append(cis(i*2*math.pi/600))
+	data.append((cis(i*2*math.pi/600)))
 data=np.array(data)
+print np.sum(data)
 
 k=np.array([[0.4,0.6],[0,1]]) #standard [[0.4,0.6],[0,1]]
 xIndex1=np.dot([-1,0],k)

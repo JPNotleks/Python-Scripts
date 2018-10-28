@@ -14,36 +14,22 @@ def saveFile(title):
 xMax=0;yMax=0;xInterval=0;yInterval=0;xGridsize=0;yGridsize=0;yLabelShift=20;xLabels=0;yLabels=0;xOffset=100;yOffset=80
 yConstant=0;xConstant=0;pMatrix=0;globTrans=[0,0]
 
-panel=GraphWin("piGraph biy John Skelton 2016-2018",1200,800,autoflush=False);panel.setCoords(-500,-400,700,400)
+panel=GraphWin("piGraph by John Skelton 2016-2018",1200,800,autoflush=False);panel.setCoords(-500,-400,700,400)
 
 #data=numpy.array([[0,1,2,3,4,5,6,7,8,9,10],[0,0.2,0.4,0.7,0.85,0.97,1.23,1.35,1.65,1.8,2.0]])
 dataSet=numpy.array([[-2.5,-1.5,-0.5,0.5,1.5,2.5],[6.25,2.25,0.25,0.25,2.25,6.25]])
 
-def direct():
-	print("parameters : (xMin,xMax,ymin,yMax,xInterval,yInterval,Grid)");peri=raw_input()
-	peri=peri.split(",")
-	global xMin;xMin=float(peri[0])
-	global xMax;xMax=float(peri[1])
-	global yMin;yMin=float(peri[2])
-	global yMax;yMax=float(peri[3])
-	global xInterval;xInterval=float(peri[4])
-	global yInterval;yInterval=float(peri[5])
-	global grid;grid=int(peri[6])
-	global dmxPoint;dmxPoint=len((peri[4]+".").split('.')[1])
-        global dmyPoint;dmyPoint=len((peri[5]+".").split('.')[1])
-	global pMatrix;pMatrix=numpy.array([[0.7,0.2],[-0.4,0.7]])#[[0.7,-0.2],[0.4,0.7]];[[0.2,-0.5],[0.8,0.2]]
-	setup()
-
-def remote(a,b,c,d,e,f,g):
-	global xMin;xMin=a
-	global xMax;xMax=b
-	global yMin;yMin=c
-        global yMax;yMax=d
-        global xInterval;xInterval=e
-        global yInterval;yInterval=f
-	global grid;grid=g
-	global dmxPoint;dmxPoint=len((str(e)+".").split('.')[1])
-        global dmyPoint;dmyPoint=len((str(f)+".").split('.')[1])
+def axes(par0,par1,par2,par3,par4,par5,par6):
+	global xMin;xMin=float(par0)
+	global xMax;xMax=float(par1)
+	global yMin;yMin=float(par2)
+	global yMax;yMax=float(par3)
+	global xInterval;xInterval=float(par4)
+	global yInterval;yInterval=float(par5)
+	global grid;grid=int(par6)
+	global dmxPoint;dmxPoint=len((str(par4)+".").split('.')[1])
+        global dmyPoint;dmyPoint=len((str(par5)+".").split('.')[1])
+	global pMatrix;pMatrix=numpy.array([[1,0],[0,1]])#[[0.7,-0.2],[0.4,0.7]];[[0.2,-0.5],[0.8,0.2]]
 	setup()
 
 def setup():
@@ -190,7 +176,7 @@ def graphLine(x,y,c):
         line.draw(panel)
 
 def pointPlot(x,y):
-	k=Point(x/xConstant+origin.x+globTrans[0],-y/yConstant+origin.y+globTrans[1])
+	k=point(x,y)
 	circ=Circle(k,1);circ.draw(panel);#l=Line(K,Point(K.x,400));l.draw(panel)
 	panel.update()
 
