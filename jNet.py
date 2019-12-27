@@ -7,21 +7,18 @@ from PIL import Image
 import piGraph
 import json, codecs
 
-######################SETUP#############################
-def s(x):
-	if x>10:y=1.0
-	elif x<-10:y=-1.0
-	else:y=1/(1+math.e**(-x))
-	if y==0.5: return 0.0
-	else: return y
+######################SETUP############################
+
+def s(x,deriv):
+	y=np.piecewise(x,[x==0,x!=0],[0,1/(1+math.e**(-x))])
+	if deriv==0: return y
+	else: return y*(1-y)
 sigmoid=np.vectorize(s)
 panel=GraphWin("jNet",1100,750,autoflush=False)
 
-eta=0.05;maxNeurons=0;l=0;net=0;netA=0;netB=0;netW=0;l=0;maxNeurons=0;dictPos=0;gradientW=0;gradientA=0;gradientB=0
+eta=0.05;maxNeurons=0;l=0;net=0;netA=0;netB=0;netW=0;l=0;maxNeurons=0;dictPos=0;gradientW=0;gradientA=0;gradientB=0;gradientD=0
 regressionData=np.zeros([30])
-historyW=np.zeros((100,2,64,64))
-historyB=np.zeros((100,2,64))
-historyIndices=np.full((100,2),100)
+historyW=0;historyB=0;historyIndices=0
 #neuronWSave=open("neuronWeightInitialisation","w+")
 #neuronBSave=open("neuronBiasInitialisation","w+")
 #netSave=open("netSave","w+")
@@ -31,8 +28,9 @@ for i in range(30):
 	regressionData[i]=3*math.sin(2*i)+1.5	# 3,2,1.5
 
 def neuralNet(yeet):
-	global net;global netA;global netB;global netW;global l;global maxNeurons;global dictPos;global gradientW;global gradientA;global gradientB
-	piGraph.axes(0,100,0,2,25,0.2,1)
+	global net;global netA;global netB;global netW;global l;global maxNeurons;global dictPos;global gradientW
+	global gradientA;global gradientB;global gradientD
+	piGraph.init(0,100,0,2,25,0.2,1)
 	if yeet==0:
 		net=np.array(json.loads(codecs.open("netSave.json", 'r', encoding='utf-8').read()))
 	else:
@@ -40,17 +38,16 @@ def neuralNet(yeet):
 	maxNeurons=max(net);l=len(net)
 	dictPos=np.empty([l,maxNeurons],dtype=object)                                   #position array ([layers,neurons,contents (a,w,b)])
 	netA=np.zeros([l,maxNeurons]);netW=np.zeros([l,maxNeurons,maxNeurons]);netB=np.zeros([l,maxNeurons])
-	gradientW=np.zeros([l,maxNeurons,maxNeurons]);gradientA=np.zeros([l,maxNeurons]);gradientB=np.zeros([l,maxNeurons])
+	gradientW=np.zeros([l,maxNeurons,maxNeurons]);gradientA=np.zeros([l,maxNeurons]);gradientB=np.zeros([l,maxNeurons]);gradientD=np.zeros([l,maxNeurons])
 	if yeet==0:
 		netW=np.array(json.loads(codecs.open("neuronWSave.json", 'r', encoding='utf-8').read()))
 		netB=np.array(json.loads(codecs.open("neuronBSave.json", 'r', encoding='utf-8').read()))
 	else:
-		for i in range(l):                                                      #point and matrix creation
-        		for k in range(net[i]):
-        		        w=[];b=random.randint(-100,0)/500.0
-        		        for j in range(maxNeurons):
-        		                w.append(random.randint(-100,100)/100.0 if j<=net[i-1] else 0)
-        		        netW[i,k]=w;netB[i,k]=b
+		netW=np.random.randint(-100,0,size=netW.shape)/500.0;netW[0,:]=0
+		for i in range(l):
+			netW[i,:,net[i-1]:]=0
+			netW[i,net[i]:]=0
+	print netW
 	for i in range(l):
 		for k in range(net[i]):
 			p=Point(int(200+400/l+i*180),int(50+600*k/(net[i]-1)));dictPos[i,k]=p
@@ -93,63 +90,54 @@ graph()
 def frame(v,graphics):
 	global netA;netA[0]=inputData[v]/16.0								#feed-forward using inputs
 	for i in range(l-1):
-		netA[i+1]=sigmoid(np.dot(netW[i+1],netA[i])+netB[i+1])
+		netA[i+1]=sigmoid(np.dot(netW[i+1],netA[i])+netB[i+1],0)
 	if graphics==1:
 		graph()
 	y=np.zeros([maxNeurons]);y[int(labels[v])]=1
-	cost=np.sum((netA[-1][:net[-1]]-y[:net[-1]])**2)
+	cost=np.sum((netA[-1][:net[-1]]-y[:net[-1]])**2)/2
 	out=np.array([y,netA,netW,netB,cost])
 	return out
 
-def backprop(input,n):	#start with n=1
-	global gradientA,gradientB,gradientW
+def backprop(input):
+	global netA,netW,gradientA,gradientB,gradientW,gradientD
 	g=input
-	for u in range(net[-1]):
-		gradientA[-1,u]=2*(netA[-1,u]-g[0][u])					#dC/dA for a whole neuron, which makes propagation easy
-		gradientB[-1,u]=2*(netA[-1,u]-g[0][u])*netA[-1,u]*(1-netA[-1,u])
-		for j in range(net[-2]):
-			gradientW[-1,u,j]=2*(netA[-1,u]-g[0][u])*netA[-1,u]*(1-netA[-1,u])*netA[-2,j]		#dC/dW
-	for j in range(net[-2]):							#to make the propagation work
-		for r in range(net[-1]):
-			gradientA[-2,j]+=gradientA[-1,r]*netA[-1,r]*(1-netA[-1,r])*netW[-1,r,j]
-
-	if l>=3:
-		for u in range(net[-1-n]):							#nth layer backwards, computes gA,gW, and gB
-			for j in range(net[-2-n]):
-				gradientW[-1-n,u,j]=gradientA[-1-n,u]*netA[-1-n,u]*(1-netA[-1-n,u])*netA[-2-n,j]
-				gradientB[-1-n,j]=gradientA[-1-n,j]*netA[-1-n,j]*(1-netA[-1-n,j])
-		for j in range(net[-2-n]):
-			for r in range(net[-1-n]):
-				gradientA[-2-n,j]+=gradientA[-1-n,r]*netA[-1-n,r]*(1-netA[-1-n,r])*netW[-1-n,r,j]
-	if n<l-2:backprop(i,n+1)
+	gradientD[-1]=(netA[-1]-g[0])*sigmoid(netA[-1],1)		#dC/dA for deltas
+	
+	for k in range(2,l):
+		gradientD[-k]=sigmoid(netA[1-k],1)*(np.dot(netW[-k],np.reshape(gradientD[1-k],maxNeurons)))    #sigma' (hadamard) (w*gradient.T)
+	gradientB=gradientD
+	for i in range(1,l-1):
+		for k in range(net[i]):
+			gradientW[i,k]=netA[i-1]*gradientD[i,k]
 	return [gradientW,gradientB,g[4]]
 
 def train(epoch,maxIter,batch,rate):
-	global netW,netB,historyIndices,historyW,historyB;best=0
+	global netW,netB,historyIndices,historyW,historyB;best=0;b=float(batch)
+	print epoch*maxIter
+	historyW=np.expand_dims(np.zeros(netW.shape),0)
+	historyB=np.expand_dims(np.zeros(netB.shape),0)
+	historyIndices=np.full((epoch*maxIter,2),100.0)
 	for r in range(epoch):
-		if best!=0:
-			netW=historyW[best]
-			netB=historyB[best]
-			print historyIndices[best]
-		for u in range(int(maxIter/batch)):
-			g=u+r*int(maxIter/batch)
+		#if best!=0:
+		#	netW=historyW[best]
+		#	netB=historyB[best]
+		#	print historyIndices[best]
+		for u in range(int(maxIter/b)):
+			g=u+r*int(maxIter/b)
 			tA=np.zeros([l,maxNeurons]);tW=np.zeros([l,maxNeurons,maxNeurons]);tB=np.zeros([l,maxNeurons]);tC=0
 			for i in range(batch):
-				p=backprop(frame(r*int(maxIter/batch)+u*batch+i,1),1)
-				tW+=p[0];tB+=p[1];tC+=p[2]
-			b=float(batch)
+				p=backprop(frame(r*int(maxIter/b)+u*batch+i,1))
+				tW+=p[0]
+				tB+=p[1]
+				tC+=p[2]
 			tW=tW/b;tB=tB/b;tC=tC/b
 			print "cost at iteration"+" "+str(g)+" "+str(round(tC,3))
-			netW=netW-rate*tW;netB=netB-rate*tB;h=0
-			if g>100:
-				h=100%g
-			else:
-				h=g
-			historyIndices[h]=[h,tC]
-			historyW[h]=netW;historyB[h]=netB
-			piGraph.pointPlot(g,tC)
-		best=np.argsort(historyIndices[:,1])[0]
-		print best
+			netW=netW-rate*tW;netB=netB-rate*tB
+		#	historyIndices[g]=[g,tC]
+		#	historyW[g]=netW;historyB[g]=netB
+			piGraph.pointPlot(g,tC,2,"black")
+		#best=np.argsort(historyIndices[:,1])[0]
+		#print best
 
 def restore(n):
 	netW=historyW[n]

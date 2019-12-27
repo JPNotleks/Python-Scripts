@@ -12,7 +12,7 @@ def saveFile(title):
 ################################### SETUP #####################################
 
 xMax=0;yMax=0;xInterval=0;yInterval=0;xGridsize=0;yGridsize=0;yLabelShift=20;xLabels=0;yLabels=0;xOffset=100;yOffset=80
-yConstant=0;xConstant=0;pMatrix=0;globTrans=[0,0]
+yConstant=0;xConstant=0;pMatrix=0;globTrans=[500,420]
 
 #data=numpy.array([[0,1,2,3,4,5,6,7,8,9,10],[0,0.2,0.4,0.7,0.85,0.97,1.23,1.35,1.65,1.8,2.0]])
 dataSet=numpy.array([[-2.5,-1.5,-0.5,0.5,1.5,2.5],[6.25,2.25,0.25,0.25,2.25,6.25]])
@@ -33,7 +33,7 @@ def changePMatrix(a,b,c,d):
 	clear();createLabels()
 
 def init(par0,par1,par2,par3,par4,par5,par6):
-	global panel;panel=GraphWin("piGraph by John Skelton 2016-2018",1200,800,autoflush=False);panel.setCoords(-500,-400,700,400)
+	global panel;panel=GraphWin("piGraph by John Skelton 2016-2018",1200,800,autoflush=False)#;panel.setCoords(-500,-400,700,400)
 	global xMin;xMin=float(par0)
 	global xMax;xMax=float(par1)
 	global yMin;yMin=float(par2)
@@ -57,22 +57,17 @@ def setup():
 #plane is origin (500+-400,400+-320)
 
 def createLabels():
+	global origin;origin=[-(xMax+xMin)/(2*xConstant),-(yMin+yMax)/(2*yConstant)]
 	if grid==1:
-		global origin;origin=[-(xMax+xMin)/(2*xConstant),-(yMin+yMax)/(2*yConstant)]
 		if yMin<0 and yMax>0:
-			xaxis=Line(rawPoint(-415,origin[1]),rawPoint(415,origin[1]))
-			xaxis.setWidth(3);xaxis.setFill("black");xaxis.draw(panel);u=origin[1]
-		else:
-			xaxis=Line(rawPoint(-415,320*pos(origin[1])),rawPoint(415,320*pos(origin[1])))
-			xaxis.setWidth(3);xaxis.setFill("black");xaxis.draw(panel);u=320*pos(origin[1])
-	
-		if xMin<0 and xMax>0:
-			yaxis=Line(rawPoint(origin[0],-335),rawPoint(origin[0],335))
-			yaxis.setWidth(3);yaxis.setFill("black");yaxis.draw(panel);v=origin[0]
-		else:
-			yaxis=Line(rawPoint(400*pos(origin[0]),-335),rawPoint(400*pos(origin[0]),335))
-			yaxis.setWidth(3);yaxis.setFill("black");yaxis.draw(panel);v=400*pos(origin[0])
-		x=Text(rawPoint(426,u),"x");x.draw(panel);y=Text(rawPoint(v,348),"y");y.draw(panel)
+                        u=origin[1]
+                else:
+                        u=320*pos(origin[1])
+
+                if xMin<0 and xMax>0:
+                        v=origin[0]
+                else:
+                        v=400*pos(origin[0])
 
 		if yMin<0 and yMax>0:
 			for i in range(int(-xMin/xInterval)+1):
@@ -81,17 +76,14 @@ def createLabels():
 				else: r=round(-xInterval*i,dmxPoint)
 				if r==0:r=None
 				text=Text(rawPoint(origin[0]-xP-pos(origin[1])*(2+3*len(str(r))),u+9*pos(origin[1])),r);text.draw(panel)
-				if r==0:r=None
-				text=Text(rawPoint(origin[0]-xP-pos(origin[1])*(2+3*len(str(r))),u+9*pos(origin[1])),r);text.draw(panel)
-				text=Text(rawPoint(origin[0]-xP-pos(origin[1])*(2+3*len(str(r))),u+9*pos(origin[1])),r);text.draw(panel)
-				marker=Line(rawPoint(origin[0]-xP,-320),rawPoint(origin[0]-xP,320));marker.draw(panel)
+				marker=Line(rawPoint(origin[0]-xP,-320),rawPoint(origin[0]-xP,320));marker.setFill("grey");marker.draw(panel)
 			for i in range(int(xMax/xInterval)+1):
 				xP=int(xInterval/xConstant*i)
 				if dmxPoint==0:r=int(xInterval*i)
 				else: r=round(xInterval*i,dmxPoint)
 				if r==0:r=None
 				text=Text(rawPoint(origin[0]+xP-pos(origin[1])*(2+3*len(str(r))),u+9*pos(origin[1])),r);text.draw(panel)
-				marker=Line(rawPoint(origin[0]+xP,-320),rawPoint(origin[0]+xP,320));marker.draw(panel)
+				marker=Line(rawPoint(origin[0]+xP,-320),rawPoint(origin[0]+xP,320));marker.setFill("grey");marker.draw(panel)
 		else:
 			for i in range(int(((xMax-xMin)/xInterval))+1):
 				xP=int(xInterval/xConstant*i)
@@ -99,7 +91,7 @@ def createLabels():
 				else: r=round(xInterval*i+xMin,dmxPoint)
 				if r==0:r=None
 				text=Text(rawPoint(-400+xP-pos(origin[1])*(2+3*len(str(r))),u+9*pos(origin[1])),r);text.draw(panel)
-				marker=Line(rawPoint(-400+xP,-320),rawPoint(-400+xP,320));marker.draw(panel)
+				marker=Line(rawPoint(-400+xP,-320),rawPoint(-400+xP,320));marker.setFill("grey");marker.draw(panel)
 
 		if xMin<0 and xMax>0:
 			for i in range(int(-yMin/yInterval)+1):
@@ -108,14 +100,14 @@ def createLabels():
 				else: r=round(-yInterval*i,dmyPoint)
 				if r==0:r=None
 				text=Text(rawPoint(v+2+4*len(str(r)),origin[1]-yP-7*pos(origin[0])),r);text.draw(panel)
-				marker=Line(rawPoint(-400,origin[1]-yP),rawPoint(400,origin[1]-yP));marker.draw(panel)
+				marker=Line(rawPoint(-400,origin[1]-yP),rawPoint(400,origin[1]-yP));marker.setFill("grey");marker.draw(panel)
 			for i in range(int(yMax/yInterval)+1):
 				yP=int(yInterval/yConstant*i)
 				if dmyPoint==0:r=int(yInterval*i)
 				else: r=round(yInterval*i,dmyPoint)
 				if r==0:r=None
 				text=Text(rawPoint(v+2+4*len(str(r)),origin[1]+yP-7*pos(origin[0])),r);text.draw(panel)
-				marker=Line(rawPoint(-400,origin[1]+yP),rawPoint(400,origin[1]+yP));marker.draw(panel)
+				marker=Line(rawPoint(-400,origin[1]+yP),rawPoint(400,origin[1]+yP));marker.setFill("grey");marker.draw(panel)
 		else:
 			for i in range(int(((yMax-yMin)/yInterval))+1):
 				yP=int(yInterval/yConstant*i)
@@ -123,7 +115,21 @@ def createLabels():
 				else: r=round(yMin+yInterval*i,dmyPoint)
 				if r==0:r=None
 				text=Text(rawPoint(v+pos(origin[1])*(2+4*len(str(r))),-320+yP-9*pos(origin[1])),r);text.draw(panel)
-				marker=Line(rawPoint(-400,-320+yP),rawPoint(400,-320+yP));marker.draw(panel)
+				marker=Line(rawPoint(-400,-320+yP),rawPoint(400,-320+yP));marker.setFill("grey");marker.draw(panel)
+
+		if yMin<0 and yMax>0:
+                        xaxis=Line(rawPoint(-415,origin[1]),rawPoint(415,origin[1]))
+                        xaxis.setWidth(3);xaxis.setFill("black");xaxis.draw(panel);u=origin[1]
+                else:
+                        xaxis=Line(rawPoint(-415,320*pos(origin[1])),rawPoint(415,320*pos(origin[1])))
+                        xaxis.setWidth(3);xaxis.setFill("black");xaxis.draw(panel);u=320*pos(origin[1])
+
+                if xMin<0 and xMax>0:
+                        yaxis=Line(rawPoint(origin[0],-335),rawPoint(origin[0],335))
+                        yaxis.setWidth(3);yaxis.setFill("black");yaxis.draw(panel);v=origin[0]
+                else:
+                        yaxis=Line(rawPoint(400*pos(origin[0]),-335),rawPoint(400*pos(origin[0]),335))
+                        yaxis.setWidth(3);yaxis.setFill("black");yaxis.draw(panel);v=400*pos(origin[0])
 
 def plot(function,res,derivative,integral):
 	res=int(res)
@@ -177,8 +183,9 @@ def complexPlot(function,res,mode):
         	        	p2=complexPoint(z[u-i,u-k+1][0].real,z[u-i,u-k+1][0].imag,c*data[u-i,u-k+1])
         	        	p3=complexPoint(z[u-i+1,u-k+1][0].real,z[u-i+1,u-k+1][0].imag,c*data[u-i+1,u-k+1])
         	        	p4=complexPoint(z[u-i+1,u-k][0].real,z[u-i+1,u-k][0].imag,c*data[u-i+1,u-k])
-				pol=Polygon(p1,p2,p3,p4);pol.setFill(rainbow((cmath.phase(f[u-i,u-k][0]/1000.0)/math.pi+1)/2*255))
-				pol.setOutline(rainbow((cmath.phase(f[u-i,u-k][0])/math.pi+1)/2*255));pol.draw(panel)
+				if not math.isnan(f[u-i,u-k][0].real) and not math.isnan(f[u-i,u-k][0].imag):
+					pol=Polygon(p1,p2,p3,p4);pol.setFill(rainbow((cmath.phase(f[u-i,u-k][0])/math.pi+1)/2*255))
+					pol.setOutline(rainbow((cmath.phase(f[u-i,u-k][0])/math.pi+1)/2*255));pol.draw(panel)
 
 def contourIntegral(function,bound,k):
         p=numpy.full(3201,str(function),dtype='|S100');idx=numpy.array(range(3201))**bound[1]+bound[0];o=idx;idx=idx.astype('|S20')
@@ -221,9 +228,6 @@ def pos(x):
 	else:
 		return -1
 
-def s(x):
-        return 1/(1+math.e**(-x))
-
 def movie(k,s,e):
 	for i in range(s,e):
 		f(k);r=Rectangle(Point(300,20),Point(310,30))
@@ -242,8 +246,10 @@ def point(r,k):
 	return rawPoint(origin[0]+r/xConstant,origin[1]+k/yConstant)
 
 def rawPoint(r,k):
-	g=numpy.dot([r,k],pMatrix)
-	return Point(g[0]+globTrans[0],g[1]+globTrans[1])
+	#g=numpy.dot([r,k],pMatrix)
+	#return Point(g[0]+globTrans[0],g[1]+globTrans[1])
+	return Point(r+500,k+420)
+qRawPoint=numpy.vectorize(rawPoint)
 
 def complexPoint(r,k,v):
 	g=numpy.dot([origin[0]+r/xConstant,origin[1]+k/yConstant],pMatrix)
@@ -258,13 +264,18 @@ def qEval(a):
 quickEval=numpy.vectorize(qEval)
 
 def qPlot(x,y,c):
-	panel.plot(x,y-100,color_rgb(c%16*15,c%4*63,c%2*30))
-	#panel.plot(x,y-100,color_rgb((c>>8)&0xff,c>>16,c&0xff))
+	k=Point(x+globTrans[0],y+globTrans[1])
+	k.setFill(rainbow(c))
+	#color_rgb(c%16*15,c%4*63,c%2*30))
+	k.draw(panel)
+	#color_rgb((c>>8)&0xff,c>>16,c&0xff))
 quickPlot=numpy.vectorize(qPlot)
 
 def rainbow(x):
 	if x>255:x=x%255
-        if 0<=x<255/6.0:
+	if x==0:
+		r=0;g=0;b=0
+        if 0<x<255/6.0:
                 r=255;g=6*x;b=0
         if 255/6.0<=x<2*255/6.0:
                 r=255-6*(x-255/6.0);g=255;b=0
@@ -285,6 +296,11 @@ def barGraph(data):
 def lineGraph(data):
 	for i in range(len(data[1])-1):
 		l=Line(point(data[0,i],data[1,i]),point(data[0,i+1],data[1,i+1]));l.draw(panel)
+
+def s(x):
+        y=numpy.piecewise(x,[x<-5,-5<=x<=5,x>5],[0,1/(1+math.e**(-x)),1])
+        return y*(1-y)
+sigmoid=numpy.vectorize(s)
 
 #################################### MAIN ###################################
 
@@ -307,40 +323,45 @@ def f(function):
 	global functionStore
 
 	if function=="mandelbrot":
-		for g in range(1):
-			t=Text(Point(50,50),"Zoom=%s" %(round(1.0/(0.9**g),3)));t.draw(panel)
-			w=1000;z=1;x=-0.6;y=-0.5;n=300#;z=0.9**g*4.0;x=0.360240443437614363236125244;y=-0.6413130610648031748603750151793020665;n=400
-			fM=numpy.zeros([w,w],dtype=complex);kM=numpy.zeros([w,w,3])
-			for i in range(w):
-				for k in range(w):
-					fM[i,k]=complex((i*z/(1.000000000*w)+x-z/2),(k*z/(1.000000000*w)+y-z/2));kM[i,k,0]=i;kM[i,k,1]=k
-			init=fM;print fM
+		#t=Text(Point(50,50),"Zoom=%s" %(round(1.0/(0.9**g),3)));t.draw(panel)
+		n=100
+		kM=numpy.zeros([640,800,3],dtype='int')
+		fM=numpy.tile(numpy.linspace(xMin,xMax,num=800,dtype='complex64'),(640,1))+numpy.transpose(numpy.tile((0+1j)*numpy.linspace(yMin,yMax,num=640,dtype='complex64'),(800,1)))
+		kM[:,:,0]=numpy.round(fM.real/xConstant+origin[0]);kM[:,:,1]=numpy.round(fM.imag/yConstant+origin[1])
+		init=fM;print kM
 	
-			for i in range(1,n+1):
-				fM=(abs(fM.real)+abs(fM.imag)*1j)**2+init
-				kM[abs(fM)>2,2]=i;init[abs(fM)>2]=0;fM[abs(fM)>2]=0
-				print i
-			print "graphing"
-			kM[:,:,2]=kM[:,:,2]*2**24/(n+1);kM=kM.astype(int)
+		for i in range(1,n+1):
+			fM=fM**2+init
+			kM[abs(fM)>2,2]=i;init[abs(fM)>2]=0;fM[abs(fM)>2]=0
+			print i
+		print "graphing"
+		#kM[:,:,2]=kM[:,:,2]*2**24/(n+1);kM=kM.astype(int)
 
-			#r=numpy.zeros([1600])
-			#for i in range(w):
-			#	for k in range(w):
-			#		x=(log(abs(fM[i,k]))/log(2))/n
-			#		y=math.floor(x*800.0)
-			#		if -800<y<800:r[y+800]+=1
-			#for i in range(1600):
-			#	graphLine(((i-800.00)/800*n,0),((i-800.00)/800*n+xConstant,r[i]),"red")
-			#	#print (i-800.00)/800*n,(i-800.00)/800*n+xConstant,r[i]
-			quickPlot(kM[:,:,0],kM[:,:,1],kM[:,:,2])
-			
-			panel.update()#;print g;saveFile("MandelRes%s.jpg" %(g));panel.delete("all")
+		kM[:,:,2]=510*s(kM[:,:,2]/32)-255
+
+		#r=numpy.zeros([1600])
+		#for i in range(w):
+		#	for k in range(w):
+		#		x=(log(abs(fM[i,k]))/log(2))/n
+		#		y=math.floor(x*800.0)
+		#		if -800<y<800:r[y+800]+=1
+		#for i in range(1600):
+		#	graphLine(((i-800.00)/800*n,0),((i-800.00)/800*n+xConstant,r[i]),"red")
+		#	#print (i-800.00)/800*n,(i-800.00)/800*n+xConstant,r[i]
+		quickPlot(kM[:,:,0],kM[:,:,1],kM[:,:,2])
+
+		#for i in range(w):
+		#	for k in range(w):
+		#		panel.plot(init.real[i,k]/xConstant+origin[0],init[i,k].imag/yConstant+origin[1],rainbow(kM[i,k,2]))
+
+		panel.update()
+		#print g;saveFile("MandelRes%s.jpg" %(g));panel.delete("all")
 		#	z=0+0j
                 #        c=-0.5+1j
                 #        for n in range(g):
-                 #               z=z**2+c
-                 #       c=Circle(Point(2*z.real/xConstant+origin.x,-2*z.imag/(float(yMax-yMin)/320)+origin.y),4);c.setFill("black");c.draw(panel);print z.real/xConstant+origin.x,z.imag/(float(yMax-yMin)/320)+origin.y
-			#createLabels()`
+                #               z=z**2+c
+                #       c=Circle(Point(2*z.real/xConstant+origin.x,-2*z.imag/(float(yMax-yMin)/320)+origin.y),4);c.setFill("black");c.draw(panel);print z.real/xConstant+origin.x,z.imag/(float(yMax-yMin)/320)+origin.y
+		#createLabels()`
 
 	if function=="mandelpoop":
 		for n in range(100,110):

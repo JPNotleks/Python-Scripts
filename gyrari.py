@@ -27,7 +27,7 @@ def direct():
 #	zAxis=Line(Point(500+k*math.sin(xRot)*math.sin(yRot),400+k*math.sin(zRot)*math.cos(yRot)),Point(500-k*math.sin(xRot)*math.sin(yRot),400-k*math.sin(zRot)*math.cos(yRot)));zAxis.draw(panel)
 #	zText=Text(Point(500+k*math.sin(xRot)*math.sin(yRot),400+k*math.sin(zRot)*math.cos(yRot)),"z");zText.draw(panel)
 
-u=300
+u=100
 res=3
 data=np.zeros([u,u],dtype='complex')
 X=np.zeros([u,u],dtype='complex')
@@ -42,10 +42,11 @@ std=data;sum=0
 #for n in range(1,100):
 #        sum+=((-1)**(n-1))*n**(-data)
 #sum=sum/(1-2.0**(1-sum))
-data=-abs(((((data**2+data)**2+data)**2+data)**2+data)**2+data)+2
+#data=(-abs(((((data**2+data)**2+data)**2+data)**2+data)**2+data)+2)
+data=-abs(np.sin(data))+1
 #mag=abs(2/((data+1j)*(data-1j)))
 #data=math.e**(-data)/data
-mag=data
+mag=data*(-2)
 
 xAxis=Line(Point(70.0,400.0),Point(1270.0,400.0));xAxis.setWidth(4);xAxis.draw(panel)
 yAxis=Line(Point(800.0+0.2*(800-602.0),100.0-0.2*(694-100.0)),Point(602-0.2*(800-602.0),694+0.2*(694-100.0)));yAxis.setWidth(4);yAxis.draw(panel)
