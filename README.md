@@ -3,7 +3,8 @@ Various python scripts from over the years, ranging from a kNN algorithm and a n
 
 ## Example GIFs and screenshots
 
-![](https://github.com/JPNotleks/pythonScripts/blob/master/Animations%20and%20Pictures/BM%20zoom%20conditional%20density.mp4)
+![6zqqov-min (1)](https://user-images.githubusercontent.com/35423779/232044759-53600ebb-15c8-4205-9cab-065959d95374.gif)
+
 
 ## License
 
