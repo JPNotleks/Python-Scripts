@@ -12,7 +12,7 @@ Various python scripts from over the years, ranging from a kNN algorithm and a n
 
 [<img src="https://user-images.githubusercontent.com/35423779/232052730-fac5c7a0-72b4-4748-8f6b-747059cad00b.gif"/>](https://github.com/JPNotleks/pythonScripts/blob/master/Plotting%20and%20fractal%20generation/Hamiltonian%20ODE%20flow.ipynb)
 
-[<img src="https://user-images.githubusercontent.com/35423779/232050991-baea149a-46e5-42c0-9d10-1ed8160ca625.gif"/>[(https://github.com/JPNotleks/pythonScripts/blob/master/Plotting%20and%20fractal%20generation/Hamiltonian%20ODE%20flow.ipynb)
+[<img src="https://user-images.githubusercontent.com/35423779/232050991-baea149a-46e5-42c0-9d10-1ed8160ca625.gif"/>](https://github.com/JPNotleks/pythonScripts/blob/master/Plotting%20and%20fractal%20generation/Hamiltonian%20ODE%20flow.ipynb)
   
 </p>
 
